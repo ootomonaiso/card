@@ -1,0 +1,452 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="pg0" name="03-1 業務フロー As-Is">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c2" value="開始" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="240" y="40" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c3" value="帳票に記入する" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="240" y="110" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c4" value="管理者を探す" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="240" y="180" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c5" value="管理者はいるか" style="rhombus;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;" vertex="1" parent="1"><mxGeometry x="240" y="250" width="160" height="70" as="geometry"/></mxCell>
+        <mxCell id="c6" value="待つ・後で出直す" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="480" y="265" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c7" value="管理者が帳票をチェックする" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="240" y="360" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c8" value="棚を開けてカメラを取り出す" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="240" y="430" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c9" value="カメラを使う" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="240" y="500" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c10" value="カメラを棚に戻す" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="240" y="570" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c11" value="終了" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="240" y="640" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c2" target="c3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c3" target="c4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c4" target="c5"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c15" value="いない" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c5" target="c6"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c6" target="c4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c17" value="いる" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c5" target="c7"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c7" target="c8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c8" target="c9"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c9" target="c10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c10" target="c11"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg1" name="03-2 業務フロー To-Be">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c22" value="開始" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="260" y="30" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c23" value="社員証をタッチする" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="95" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c24" value="登録済みか" style="rhombus;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;" vertex="1" parent="1"><mxGeometry x="260" y="160" width="170" height="70" as="geometry"/></mxCell>
+        <mxCell id="c25" value="エラーを表示して終了" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="520" y="175" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c26" value="鍵は貸出中か" style="rhombus;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;" vertex="1" parent="1"><mxGeometry x="260" y="265" width="170" height="70" as="geometry"/></mxCell>
+        <mxCell id="c27" value="貸出中の表示を確認して終了" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="520" y="280" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c28" value="貸出時間を選ぶ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="370" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c29" value="システムが保管庫を解錠し、貸出ログを記録する" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="260" y="435" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="c30" value="鍵を取り出し、保管庫を手で施錠する" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="505" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="c31" value="棚を開けてカメラを使う" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="575" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c32" value="カメラを棚に戻し、棚を施錠する" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="635" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="c33" value="社員証をタッチして返却を押す" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="705" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="c34" value="システムが保管庫を解錠し、返却日時を記録する" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="260" y="775" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="c35" value="鍵を戻し、保管庫を手で施錠する" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="845" width="170" height="50" as="geometry"/></mxCell>
+        <mxCell id="c36" value="終了" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="260" y="915" width="170" height="40" as="geometry"/></mxCell>
+        <mxCell id="c37" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c22" target="c23"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c23" target="c24"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c39" value="未登録" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c24" target="c25"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c40" value="登録済み" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c24" target="c26"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c41" value="貸出中" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c26" target="c27"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c42" value="空き" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c26" target="c28"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c43" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c28" target="c29"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c44" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c29" target="c30"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c45" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c30" target="c31"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c46" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c31" target="c32"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c32" target="c33"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c48" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c33" target="c34"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c49" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c34" target="c35"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c50" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c35" target="c36"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg2" name="03-4 アクティビティ（貸出）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c51" value="利用者" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="40" y="40" width="300" height="360" as="geometry"/></mxCell>
+        <mxCell id="c52" value="システム" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="380" y="40" width="360" height="360" as="geometry"/></mxCell>
+        <mxCell id="c53" value="社員証をタッチ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="110" y="90" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c54" value="貸出時間を選ぶ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="110" y="200" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c55" value="鍵を取り出す" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="110" y="280" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c56" value="保管庫を手で施錠" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="110" y="340" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c57" value="IDmで認証" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="430" y="90" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c58" value="登録済み・空き?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;" vertex="1" parent="1"><mxGeometry x="430" y="150" width="160" height="60" as="geometry"/></mxCell>
+        <mxCell id="c59" value="エラー/貸出中表示" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="610" y="160" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="c60" value="貸出ログ登録" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="430" y="240" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c61" value="解錠信号・数秒" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="430" y="300" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c62" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c53" target="c57"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c63" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c57" target="c58"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c64" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c58" target="c59"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c65" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c58" target="c60"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c66" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c60" target="c54"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c67" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c54" target="c61"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c68" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c61" target="c55"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c69" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c55" target="c56"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg3" name="04 ユースケース図">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c70" value="貸出システム" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="220" y="30" width="360" height="560" as="geometry"/></mxCell>
+        <mxCell id="c71" value="利用者" style="shape=umlActor;verticalLabelPosition=bottom;labelPosition=center;html=1;outlineConnect=0;strokeColor=#d0d0d0;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="40" y="230" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="c72" value="管理者" style="shape=umlActor;verticalLabelPosition=bottom;labelPosition=center;html=1;outlineConnect=0;strokeColor=#d0d0d0;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="700" y="230" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="c73" value="社員証で認証する" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="60" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c74" value="鍵を借りる" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="140" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c75" value="鍵を返す" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="220" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c76" value="貸出状況を確認する" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="300" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c77" value="メンバーを登録・削除する" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="380" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c78" value="貸借ログを閲覧・出力する" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="460" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c79" value="保管庫を解錠する" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="300" y="530" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="c80" value="電磁ロック" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="650" y="530" width="120" height="40" as="geometry"/></mxCell>
+        <mxCell id="c81" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c71" target="c74"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c82" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c71" target="c75"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c83" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c71" target="c76"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c84" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c72" target="c77"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c85" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c72" target="c78"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c86" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c72" target="c74"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c87" value="«include»" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c74" target="c73"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c88" value="«include»" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c75" target="c73"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c89" value="«include»" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c74" target="c79"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c90" value="«include»" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c75" target="c79"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c91" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c79" target="c80"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg4" name="05-1 システム構成図">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c92" value="設置ユニット" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="820" height="460" as="geometry"/></mxCell>
+        <mxCell id="c93" value="カードリーダー
+RC-S380" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="80" y="70" width="150" height="60" as="geometry"/></mxCell>
+        <mxCell id="c94" value="タッチスクリーン
+Raspberry Pi用" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="80" y="170" width="150" height="60" as="geometry"/></mxCell>
+        <mxCell id="c95" value="Raspberry Pi" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="320" y="60" width="240" height="170" as="geometry"/></mxCell>
+        <mxCell id="c96" value="貸出アプリ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="360" y="100" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c97" value="SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="360" y="160" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c98" value="ロック駆動回路
+リレー or MOSFET + ダイオード" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="320" y="290" width="240" height="60" as="geometry"/></mxCell>
+        <mxCell id="c99" value="電磁ソレノイドロック
+LE-53" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="620" y="290" width="180" height="60" as="geometry"/></mxCell>
+        <mxCell id="c100" value="ロック用電源" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="320" y="400" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c101" value="ネットワーク" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="630" y="70" width="150" height="40" as="geometry"/></mxCell>
+        <mxCell id="c102" value="USBメモリ等" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="630" y="160" width="150" height="40" as="geometry"/></mxCell>
+        <mxCell id="c103" value="" style="html=1;endArrow=none;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c96" target="c97"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c104" value="USB" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c93" target="c96"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c105" value="表示・タッチ入力" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c94" target="c96"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c106" value="GPIO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c96" target="c98"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c107" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c100" target="c98"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c108" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c98" target="c99"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c109" value="NTP時刻同期" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c96" target="c101"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c110" value="CSV出力" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c96" target="c102"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg5" name="05-2 レイヤ構成">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c111" value="UI層: 待機/貸出/返却/管理 画面" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="220" y="40" width="260" height="50" as="geometry"/></mxCell>
+        <mxCell id="c112" value="アプリケーション層: 認証・貸出・返却・ログ・メンバー管理" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="220" y="130" width="260" height="50" as="geometry"/></mxCell>
+        <mxCell id="c113" value="ドメイン層: メンバー/物品/貸借ログのルール" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="220" y="220" width="260" height="50" as="geometry"/></mxCell>
+        <mxCell id="c114" value="デバイス層: カード読取・解錠制御" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="560" y="130" width="220" height="50" as="geometry"/></mxCell>
+        <mxCell id="c115" value="データ層: SQLiteアクセス" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="220" y="310" width="260" height="50" as="geometry"/></mxCell>
+        <mxCell id="c116" value="nfcpy / RC-S380" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="560" y="220" width="220" height="40" as="geometry"/></mxCell>
+        <mxCell id="c117" value="GPIO / 駆動回路 / LE-53" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="560" y="300" width="220" height="40" as="geometry"/></mxCell>
+        <mxCell id="c118" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c111" target="c112"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c119" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c112" target="c113"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c120" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c112" target="c114"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c121" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c113" target="c115"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c122" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c114" target="c116"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c123" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c114" target="c117"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg6" name="05-3 時刻同期フロー">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c124" value="ネットワークあり?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;" vertex="1" parent="1"><mxGeometry x="240" y="40" width="180" height="70" as="geometry"/></mxCell>
+        <mxCell id="c125" value="NTPで同期
+systemd-timesyncd 等" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="120" y="160" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="c126" value="RTCモジュール搭載
+I2C接続" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="380" y="160" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="c127" value="ログ日時に使用" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="240" y="270" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="c128" value="あり" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c124" target="c125"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c129" value="なし" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c124" target="c126"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c130" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c125" target="c127"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c131" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c126" target="c127"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg7" name="06 ER図">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c132" value="&lt;b&gt;MEMBER（メンバー）&lt;/b&gt;&lt;br&gt;member_id PK&lt;br&gt;card_idm UK（社員証IDm）&lt;br&gt;employee_no（社員番号）&lt;br&gt;name（氏名）&lt;br&gt;role（user/admin）&lt;br&gt;is_active&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;fillColor=#262626;strokeColor=#bbbbbb;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="40" y="60" width="240" height="170" as="geometry"/></mxCell>
+        <mxCell id="c133" value="&lt;b&gt;ITEM（物品）&lt;/b&gt;&lt;br&gt;item_id PK&lt;br&gt;name（セキュアカメラ）&lt;br&gt;location（保管場所）&lt;br&gt;is_active" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;fillColor=#262626;strokeColor=#bbbbbb;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="40" y="330" width="240" height="110" as="geometry"/></mxCell>
+        <mxCell id="c134" value="&lt;b&gt;LOAN（貸借ログ）&lt;/b&gt;&lt;br&gt;loan_id PK&lt;br&gt;member_id FK&lt;br&gt;item_id FK&lt;br&gt;borrowed_at（貸出日時）&lt;br&gt;duration_min（15/30/60/120/240/480）&lt;br&gt;due_at（返却予定）&lt;br&gt;returned_at（未返却はNULL）" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;fillColor=#262626;strokeColor=#bbbbbb;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="480" y="180" width="280" height="170" as="geometry"/></mxCell>
+        <mxCell id="c135" value="borrows" style="html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;edgeStyle=entityRelationEdgeStyle;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c132" target="c134"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c136" value="is_lent" style="html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;edgeStyle=entityRelationEdgeStyle;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c133" target="c134"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg8" name="07 画面遷移図">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c137" value="S01 待機画面
+保管中/貸出中の表示" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="40" y="220" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="c138" value="認証" style="rhombus;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;" vertex="1" parent="1"><mxGeometry x="300" y="225" width="140" height="60" as="geometry"/></mxCell>
+        <mxCell id="c139" value="S06 エラー画面" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="300" y="40" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c140" value="S03 貸出時間選択" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="540" y="120" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c141" value="S05 返却確認" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="540" y="300" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c142" value="A01 管理メニュー" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="300" y="420" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c143" value="S04 解錠中
+鍵を取り出してください" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="760" y="120" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="c144" value="S07 解錠中
+鍵を戻してください" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="760" y="300" width="180" height="50" as="geometry"/></mxCell>
+        <mxCell id="c145" value="A02 メンバー管理" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="540" y="420" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c146" value="A03 ログ出力" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="540" y="480" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c147" value="社員証タッチ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c137" target="c138"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c148" value="未登録" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c138" target="c139"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c149" value="登録済み・空き" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c138" target="c140"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c150" value="本人が貸出中" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c138" target="c141"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c151" value="管理者" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c138" target="c142"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c152" value="時間を選ぶ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c140" target="c143"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c153" value="返却する" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c141" target="c144"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c154" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c143" target="c137"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c155" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c144" target="c137"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c156" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c139" target="c137"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c157" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c142" target="c145"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c158" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c142" target="c146"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c159" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c142" target="c140"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg9" name="08-1 シーケンス（貸出）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c160" value="利用者" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;participant=umlActor;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="110" height="922" as="geometry"/></mxCell>
+        <mxCell id="c161" value="カードリーダー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="240" y="20" width="110" height="922" as="geometry"/></mxCell>
+        <mxCell id="c162" value="Raspberry Pi（アプリ）" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="440" y="20" width="110" height="922" as="geometry"/></mxCell>
+        <mxCell id="c163" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="640" y="20" width="110" height="922" as="geometry"/></mxCell>
+        <mxCell id="c164" value="電磁ロック" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="840" y="20" width="110" height="922" as="geometry"/></mxCell>
+        <mxCell id="c165" value="alt  [未登録]" style="rounded=0;html=1;fillColor=none;dashed=1;strokeColor=#8a8a8a;verticalAlign=top;align=left;spacingLeft=6;spacingTop=2;fontStyle=2;fontColor=#aaaaaa;" vertex="1" parent="1"><mxGeometry x="20" y="206" width="940" height="136" as="geometry"/></mxCell>
+        <mxCell id="c166" value="alt  [貸出中]" style="rounded=0;html=1;fillColor=none;dashed=1;strokeColor=#8a8a8a;verticalAlign=top;align=left;spacingLeft=6;spacingTop=2;fontStyle=2;fontColor=#aaaaaa;" vertex="1" parent="1"><mxGeometry x="20" y="464" width="940" height="88" as="geometry"/></mxCell>
+        <mxCell id="c167" value="alt  [空き]" style="rounded=0;html=1;fillColor=none;dashed=1;strokeColor=#8a8a8a;verticalAlign=top;align=left;spacingLeft=6;spacingTop=2;fontStyle=2;fontColor=#aaaaaa;" vertex="1" parent="1"><mxGeometry x="20" y="552" width="940" height="328" as="geometry"/></mxCell>
+        <mxCell id="c168" value="alt  [登録済み]" style="rounded=0;html=1;fillColor=none;dashed=1;strokeColor=#8a8a8a;verticalAlign=top;align=left;spacingLeft=6;spacingTop=2;fontStyle=2;fontColor=#aaaaaa;" vertex="1" parent="1"><mxGeometry x="20" y="342" width="940" height="552" as="geometry"/></mxCell>
+        <mxCell id="c169" value="社員証をタッチ" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="70" as="sourcePoint"/><mxPoint x="295.0" y="70" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c170" value="IDm" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="118" as="sourcePoint"/><mxPoint x="495.0" y="118" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c171" value="メンバー照合" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="166" as="sourcePoint"/><mxPoint x="695.0" y="166" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c172" value="該当なし" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="695.0" y="240" as="sourcePoint"/><mxPoint x="495.0" y="240" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c173" value="エラー表示" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="288" as="sourcePoint"/><mxPoint x="95.0" y="288" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c174" value="氏名・社員番号" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="695.0" y="376" as="sourcePoint"/><mxPoint x="495.0" y="376" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c175" value="貸出中か確認" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="424" as="sourcePoint"/><mxPoint x="695.0" y="424" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c176" value="貸出中の表示（氏名・返却予定）" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="498" as="sourcePoint"/><mxPoint x="95.0" y="498" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c177" value="貸出時間の選択画面" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="586" as="sourcePoint"/><mxPoint x="95.0" y="586" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c178" value="貸出時間を選ぶ" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="634" as="sourcePoint"/><mxPoint x="495.0" y="634" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c179" value="貸出ログ登録（貸出日時・返却予定）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="682" as="sourcePoint"/><mxPoint x="695.0" y="682" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c180" value="解錠信号（数秒）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="730" as="sourcePoint"/><mxPoint x="895.0" y="730" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c181" value="鍵を取り出してください" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="778" as="sourcePoint"/><mxPoint x="95.0" y="778" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c182" value="鍵を取り出し、手で施錠" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="826" as="sourcePoint"/><mxPoint x="895.0" y="826" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg10" name="08-2 シーケンス（返却）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c183" value="利用者" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;participant=umlActor;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="110" height="706" as="geometry"/></mxCell>
+        <mxCell id="c184" value="カードリーダー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="240" y="20" width="110" height="706" as="geometry"/></mxCell>
+        <mxCell id="c185" value="Raspberry Pi（アプリ）" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="440" y="20" width="110" height="706" as="geometry"/></mxCell>
+        <mxCell id="c186" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="640" y="20" width="110" height="706" as="geometry"/></mxCell>
+        <mxCell id="c187" value="電磁ロック" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="840" y="20" width="110" height="706" as="geometry"/></mxCell>
+        <mxCell id="c188" value="alt  [本人の貸出ではない]" style="rounded=0;html=1;fillColor=none;dashed=1;strokeColor=#8a8a8a;verticalAlign=top;align=left;spacingLeft=6;spacingTop=2;fontStyle=2;fontColor=#aaaaaa;" vertex="1" parent="1"><mxGeometry x="20" y="262" width="940" height="88" as="geometry"/></mxCell>
+        <mxCell id="c189" value="alt  [本人の貸出]" style="rounded=0;html=1;fillColor=none;dashed=1;strokeColor=#8a8a8a;verticalAlign=top;align=left;spacingLeft=6;spacingTop=2;fontStyle=2;fontColor=#aaaaaa;" vertex="1" parent="1"><mxGeometry x="20" y="350" width="940" height="328" as="geometry"/></mxCell>
+        <mxCell id="c190" value="待機画面から開始" style="shape=note;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;size=14;" vertex="1" parent="1"><mxGeometry x="15.0" y="70" width="160" height="44" as="geometry"/></mxCell>
+        <mxCell id="c191" value="社員証をタッチ" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="126" as="sourcePoint"/><mxPoint x="295.0" y="126" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c192" value="IDm" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="174" as="sourcePoint"/><mxPoint x="495.0" y="174" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c193" value="貸出中のログを検索" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="222" as="sourcePoint"/><mxPoint x="695.0" y="222" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c194" value="エラー表示" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="296" as="sourcePoint"/><mxPoint x="95.0" y="296" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c195" value="返却確認画面" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="384" as="sourcePoint"/><mxPoint x="95.0" y="384" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c196" value="「返却する」を押す" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="432" as="sourcePoint"/><mxPoint x="495.0" y="432" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c197" value="返却日時を記録" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="480" as="sourcePoint"/><mxPoint x="695.0" y="480" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c198" value="解錠信号（数秒）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="528" as="sourcePoint"/><mxPoint x="895.0" y="528" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c199" value="鍵を戻してください" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="576" as="sourcePoint"/><mxPoint x="95.0" y="576" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c200" value="鍵を戻し、手で施錠" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="624" as="sourcePoint"/><mxPoint x="895.0" y="624" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg11" name="08-3 シーケンス（解錠制御）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c201" value="アプリ" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="110" height="434" as="geometry"/></mxCell>
+        <mxCell id="c202" value="GPIO" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="240" y="20" width="110" height="434" as="geometry"/></mxCell>
+        <mxCell id="c203" value="駆動回路" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="440" y="20" width="110" height="434" as="geometry"/></mxCell>
+        <mxCell id="c204" value="ソレノイド(LE-53)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="640" y="20" width="110" height="434" as="geometry"/></mxCell>
+        <mxCell id="c205" value="出力 ON" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="70" as="sourcePoint"/><mxPoint x="295.0" y="70" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c206" value="駆動信号" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="118" as="sourcePoint"/><mxPoint x="495.0" y="118" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c207" value="通電（解錠）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="166" as="sourcePoint"/><mxPoint x="695.0" y="166" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c208" value="規定秒数待機" style="shape=note;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;size=14;" vertex="1" parent="1"><mxGeometry x="15.0" y="214" width="160" height="44" as="geometry"/></mxCell>
+        <mxCell id="c209" value="出力 OFF" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="270" as="sourcePoint"/><mxPoint x="295.0" y="270" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c210" value="停止" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="318" as="sourcePoint"/><mxPoint x="495.0" y="318" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c211" value="通電停止（発熱防止）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="366" as="sourcePoint"/><mxPoint x="695.0" y="366" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg12" name="08-4 シーケンス（メンバー登録）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c212" value="管理者" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;participant=umlActor;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="110" height="474" as="geometry"/></mxCell>
+        <mxCell id="c213" value="アプリ" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="240" y="20" width="110" height="474" as="geometry"/></mxCell>
+        <mxCell id="c214" value="カードリーダー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="440" y="20" width="110" height="474" as="geometry"/></mxCell>
+        <mxCell id="c215" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="640" y="20" width="110" height="474" as="geometry"/></mxCell>
+        <mxCell id="c216" value="管理メニュー→メンバー管理" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="70" as="sourcePoint"/><mxPoint x="295.0" y="70" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c217" value="新規社員証をタッチ" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="118" as="sourcePoint"/><mxPoint x="495.0" y="118" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c218" value="IDm" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="166" as="sourcePoint"/><mxPoint x="295.0" y="166" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c219" value="氏名・社員番号・ロール入力画面" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="214" as="sourcePoint"/><mxPoint x="95.0" y="214" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c220" value="入力して保存" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="262" as="sourcePoint"/><mxPoint x="295.0" y="262" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c221" value="MEMBER登録（is_active=1）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="310" as="sourcePoint"/><mxPoint x="695.0" y="310" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c222" value="完了" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="695.0" y="358" as="sourcePoint"/><mxPoint x="295.0" y="358" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c223" value="登録完了表示" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="406" as="sourcePoint"/><mxPoint x="95.0" y="406" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg13" name="08-5 状態遷移（物品）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c224" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#eeeeee;" vertex="1" parent="1"><mxGeometry x="60" y="40" width="20" height="20" as="geometry"/></mxCell>
+        <mxCell id="c225" value="保管中" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="40" y="120" width="120" height="50" as="geometry"/></mxCell>
+        <mxCell id="c226" value="貸出中" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="40" y="260" width="120" height="50" as="geometry"/></mxCell>
+        <mxCell id="c227" value="延滞" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="320" y="260" width="120" height="50" as="geometry"/></mxCell>
+        <mxCell id="c228" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c224" target="c225"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c229" value="登録者がタッチして貸出" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c225" target="c226"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c230" value="本人がタッチして返却" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c226" target="c225"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c231" value="返却予定時刻を過ぎる" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c226" target="c227"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c232" value="本人がタッチして返却" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c227" target="c225"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg14" name="08-6 UIステートマシン">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c233" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#eeeeee;" vertex="1" parent="1"><mxGeometry x="60" y="40" width="20" height="20" as="geometry"/></mxCell>
+        <mxCell id="c234" value="待機" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="40" y="110" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c235" value="認証中" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="40" y="220" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c236" value="エラー" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="260" y="110" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c237" value="時間選択" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="300" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c238" value="返却確認" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="460" y="300" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c239" value="管理メニュー" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#33254a;strokeColor=#a885c4;fontColor=#e4d7f2;" vertex="1" parent="1"><mxGeometry x="260" y="220" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c240" value="解錠(貸出)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="260" y="390" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c241" value="解錠(返却)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="460" y="390" width="120" height="44" as="geometry"/></mxCell>
+        <mxCell id="c242" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c233" target="c234"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c243" value="タッチ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c234" target="c235"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c244" value="未登録" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c235" target="c236"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c245" value="登録・空き" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c235" target="c237"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c246" value="本人が貸出中" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c235" target="c238"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c247" value="管理者" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c235" target="c239"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c248" value="時間選択" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c237" target="c240"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c249" value="返却する" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c238" target="c241"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c250" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c240" target="c234"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c251" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c241" target="c234"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c252" value="タイムアウト" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c236" target="c234"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c253" value="戻る/タイムアウト" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c239" target="c234"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg15" name="09-1 HW接続構成図">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c254" value="設置ユニット" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="860" height="440" as="geometry"/></mxCell>
+        <mxCell id="c255" value="Raspberry Pi" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;fontStyle=1;dashed=0;strokeColor=#8a8a8a;fontColor=#d6d6d6;" vertex="1" parent="1"><mxGeometry x="340" y="70" width="220" height="230" as="geometry"/></mxCell>
+        <mxCell id="c256" value="GPIO 出力ピン" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="370" y="110" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c257" value="USBポート" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="370" y="170" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c258" value="I2C" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="370" y="230" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c259" value="カードリーダー
+RC-S380" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="80" y="110" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="c260" value="タッチスクリーン" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="80" y="230" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="c261" value="ロック駆動回路
+リレー or MOSFET+ダイオード" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="630" y="100" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="c262" value="ソレノイドロック
+LE-53（DC5V/2W・通電時解錠）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="630" y="200" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="c263" value="ロック用電源" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="630" y="300" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c264" value="RTCモジュール（任意）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="80" y="340" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="c265" value="USB" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c259" target="c257"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c266" value="表示/タッチ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c260" target="c256"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c267" value="駆動信号" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c256" target="c261"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c268" value="電源" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c263" target="c261"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c269" value="通電" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c261" target="c262"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c270" value="I2C" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c264" target="c258"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg16" name="09-2 解錠制御シーケンス">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c271" value="アプリ" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="110" height="386" as="geometry"/></mxCell>
+        <mxCell id="c272" value="GPIO" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="240" y="20" width="110" height="386" as="geometry"/></mxCell>
+        <mxCell id="c273" value="駆動回路" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="440" y="20" width="110" height="386" as="geometry"/></mxCell>
+        <mxCell id="c274" value="ソレノイド" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;size=30;fillColor=none;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="640" y="20" width="110" height="386" as="geometry"/></mxCell>
+        <mxCell id="c275" value="HIGH（ON）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="70" as="sourcePoint"/><mxPoint x="295.0" y="70" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c276" value="駆動" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="295.0" y="118" as="sourcePoint"/><mxPoint x="495.0" y="118" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c277" value="通電 → 解錠" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="166" as="sourcePoint"/><mxPoint x="695.0" y="166" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c278" value="数秒待機（設定値）" style="shape=note;whiteSpace=wrap;html=1;fillColor=#4a3f1c;strokeColor=#d6b656;fontColor=#f2e6bd;size=14;" vertex="1" parent="1"><mxGeometry x="15.0" y="214" width="160" height="44" as="geometry"/></mxCell>
+        <mxCell id="c279" value="LOW（OFF）" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="95.0" y="270" as="sourcePoint"/><mxPoint x="295.0" y="270" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c280" value="通電停止" style="html=1;endArrow=block;rounded=0;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="495.0" y="318" as="sourcePoint"/><mxPoint x="695.0" y="318" as="targetPoint"/></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pg17" name="09-3 駆動回路（MOSFET方式）">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0" background="#1e1e1e">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c281" value="GPIO" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1c3147;strokeColor=#5a9bd4;fontColor=#d4e6f7;" vertex="1" parent="1"><mxGeometry x="40" y="60" width="100" height="40" as="geometry"/></mxCell>
+        <mxCell id="c282" value="ゲート抵抗" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="200" y="60" width="120" height="40" as="geometry"/></mxCell>
+        <mxCell id="c283" value="N-ch MOSFET" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="380" y="60" width="140" height="40" as="geometry"/></mxCell>
+        <mxCell id="c284" value="ロック電源 +" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="380" y="180" width="140" height="40" as="geometry"/></mxCell>
+        <mxCell id="c285" value="ソレノイド LE-53
+(DC5V / 2W)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2d2d2d;strokeColor=#9e9e9e;fontColor=#e6e6e6;" vertex="1" parent="1"><mxGeometry x="560" y="120" width="160" height="50" as="geometry"/></mxCell>
+        <mxCell id="c286" value="還流ダイオード（並列）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4a2121;strokeColor=#d17a7a;fontColor=#f4d2d2;" vertex="1" parent="1"><mxGeometry x="560" y="200" width="160" height="40" as="geometry"/></mxCell>
+        <mxCell id="c287" value="共通GND" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#1f3d23;strokeColor=#6cbf6c;fontColor=#d6edd6;" vertex="1" parent="1"><mxGeometry x="380" y="300" width="140" height="40" as="geometry"/></mxCell>
+        <mxCell id="c288" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c281" target="c282"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c289" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c282" target="c283"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c290" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c284" target="c285"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c291" value="ドレイン" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c285" target="c283"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c292" value="並列" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c285" target="c286"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c293" value="" style="html=1;endArrow=open;dashed=1;rounded=0;endSize=8;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c284" target="c286"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="c294" value="ソース" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;strokeColor=#b0b0b0;fontColor=#e0e0e0;" edge="1" parent="1" source="c283" target="c287"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

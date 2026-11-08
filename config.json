@@ -1,0 +1,24 @@
+{
+  "db_path": "lending.sqlite3",
+  "item_name": "セキュアカメラ",
+  "item_location": "保管庫A",
+
+  "unlock_seconds": 5,
+  "min_reunlock_seconds": 3,
+  "idle_timeout_seconds": 30,
+  "result_screen_seconds": 6,
+
+  "duration_choices_min": [15, 30, 60, 120, 240, 480],
+  "csv_datetime_format": "%Y/%m/%d %H:%M",
+  "csv_encoding": "utf-8-sig",
+
+  "show_borrower_name": true,
+  "allow_return_by_others": false,
+  "require_tap_to_start": false,
+
+  "lock_gpio_pin": 17,
+  "lock_active_high": true,
+
+  "card_reader": "auto",
+  "lock": "auto"
+}
