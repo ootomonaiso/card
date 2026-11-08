@@ -9,6 +9,11 @@ from __future__ import annotations
 import threading
 import time
 
+from app.devices.base import LockError
+from app.log import get_logger
+
+_log = get_logger("lock")
+
 
 class GpioLock:
     def __init__(
@@ -34,22 +39,37 @@ class GpioLock:
         now = time.monotonic()
         with self._lock:
             if self._busy:
+                _log.info("解錠要求を無視（解錠中）")
                 return  # 解錠中は再入しない
             if (now - self._last_unlock) < self.min_reunlock:
+                _log.info("解錠要求を無視（連打抑止 < %.1fs）", self.min_reunlock)
                 return  # 連打抑止
             self._busy = True
             self._last_unlock = now
 
-        def _pulse() -> None:
+        # 通電開始は同期的に行い、ハード故障（GPIO 例外）をその場で検知する。
+        try:
+            self._dev.on()             # 通電 → 解錠
+        except Exception as e:         # gpiozero/配線由来の異常
+            with self._lock:
+                self._busy = False
+            _log.error("解錠に失敗（通電開始できず）: %s", e)
+            raise LockError(str(e)) from e
+        _log.info("解錠（通電）… %.1fs", self.unlock_seconds)
+
+        def _relock() -> None:
             try:
-                self._dev.on()          # 通電 → 解錠
                 time.sleep(self.unlock_seconds)
             finally:
-                self._dev.off()         # 必ず OFF（通電停止）
+                try:
+                    self._dev.off()    # 必ず OFF（通電停止）
+                    _log.info("施錠（通電OFF）")
+                except Exception as e:
+                    _log.error("施錠（通電OFF）に失敗: %s", e)
                 with self._lock:
                     self._busy = False
 
-        threading.Thread(target=_pulse, daemon=True).start()
+        threading.Thread(target=_relock, daemon=True).start()
 
     def close(self) -> None:
         try:

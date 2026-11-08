@@ -9,6 +9,10 @@ import threading
 import time
 from typing import Callable
 
+from app.log import get_logger
+
+_log = get_logger("reader")
+
 
 class NfcCardReader:
     def __init__(self, debounce_seconds: float = 1.5) -> None:
@@ -22,13 +26,24 @@ class NfcCardReader:
     def start(self, on_touch: Callable[[str], None]) -> None:
         self._on_touch = on_touch
         self._stop.clear()
-        self._thread = threading.Thread(target=self._loop, daemon=True)
+        self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+        _log.info("カードリーダー開始")
 
     def stop(self) -> None:
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=2.0)
+        _log.info("カードリーダー停止")
+
+    def _run(self) -> None:
+        """リーダーが例外で死んでも待受を止めないよう、再接続を試みる外側ループ。"""
+        while not self._stop.is_set():
+            try:
+                self._loop()
+            except Exception as e:  # nfcpy 初期化失敗・USB 切断など
+                _log.error("カードリーダー異常（%.0fs 後に再接続）: %s", 3.0, e)
+                self._stop.wait(3.0)
 
     def _loop(self) -> None:
         import nfc  # nfcpy。実機のみ。

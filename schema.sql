@@ -25,10 +25,17 @@ CREATE TABLE IF NOT EXISTS LOAN (
   member_id    INTEGER NOT NULL REFERENCES MEMBER(member_id),
   item_id      INTEGER NOT NULL REFERENCES ITEM(item_id),
   borrowed_at  TEXT NOT NULL,
-  duration_min INTEGER NOT NULL CHECK(duration_min IN (15,30,60,120,240,480)),
+  -- 貸出時間の選択肢は config.duration_choices_min で管理する（二重管理を避け、
+  -- ここでは正値のみを保証）。妥当性はサービス層が設定値と照合して担保する。
+  duration_min INTEGER NOT NULL CHECK(duration_min > 0),
   due_at       TEXT NOT NULL,
   returned_at  TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_loan_active ON LOAN(item_id, returned_at);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_member_idm ON MEMBER(card_idm);
+
+-- 1つの物品につき未返却（貸出中）は同時に1件まで、をDBレベルで保証する（CON-3）。
+-- アプリ側のチェックが破られても二重貸出を物理的に防ぐ安全網。
+CREATE UNIQUE INDEX IF NOT EXISTS idx_loan_one_open
+  ON LOAN(item_id) WHERE returned_at IS NULL;

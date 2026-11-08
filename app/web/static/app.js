@@ -103,14 +103,22 @@ const RENDER = {
   },
 
   admin_menu(d) {
-    screenWrap([
+    const kids = [
       el("p", { class: "big", html: "管理メニュー" }),
       el("p", { class: "body muted", html: d.admin_name ? `管理者: ${d.admin_name}` : "" }),
+    ];
+    // 管理者自身が借りている物品があれば、ここから返却できる
+    if (d.can_return) {
+      const due = d.return_due_at ? `（返却予定: ${d.return_due_at}）` : "";
+      kids.push(el("button", { class: "ok", onclick: () => action("admin_return"), html: `返却する${due}` }));
+    }
+    kids.push(
       el("button", { onclick: () => action("open_member_admin"), html: "メンバー管理" }),
       el("button", { onclick: () => action("open_report"), html: "ログ出力（CSV）" }),
       el("button", { onclick: () => action("admin_self_borrow"), html: "自分で借りる" }),
       el("button", { class: "sub", onclick: () => action("cancel"), html: "終了（待機へ）" }),
-    ]);
+    );
+    screenWrap(kids);
   },
 
   member_admin(d) {

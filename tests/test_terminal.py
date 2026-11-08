@@ -86,6 +86,43 @@ class TerminalFlowTest(unittest.TestCase):
         self.t.admin_self_borrow()
         self.assertEqual(self.screen, "borrow_time")
 
+    def test_admin_can_return_own_loan(self):
+        # 管理者が自分で借りた物品を、管理メニューの返却導線から返せる
+        self.t.on_card("ADMIN1")
+        self.t.admin_self_borrow()
+        self.t.choose_duration(60)
+        self.assertTrue(self.ctx.loans.status().is_lent)
+        # 再タッチ → 管理メニュー（can_return つき）
+        self.t.go_standby()
+        self.t.on_card("ADMIN1")
+        self.assertEqual(self.screen, "admin_menu")
+        self.assertTrue(self.last["data"].get("can_return"))
+        self.t.admin_return()
+        self.assertEqual(self.screen, "return_confirm")
+        self.t.confirm_return()
+        self.assertEqual(self.screen, "unlock")
+        self.assertFalse(self.ctx.loans.status().is_lent)
+
+    def test_admin_menu_has_no_return_without_loan(self):
+        self.t.on_card("ADMIN1")
+        self.assertEqual(self.screen, "admin_menu")
+        self.assertFalse(self.last["data"].get("can_return"))
+
+    def test_member_admin_actions_require_admin(self):
+        # 管理者ログインしていない（standby）状態では管理操作を拒否する
+        before_count = len(self.ctx.members.list_all())
+        r = self.t.register_member("不正 太郎", "999", "user")
+        self.assertFalse(r["ok"])
+        self.assertEqual(len(self.ctx.members.list_all()), before_count)  # 登録されていない
+
+        r2 = self.t.export_report("2026/11/01", "2026/11/30", "x.csv")
+        self.assertFalse(r2["ok"])
+
+        uid = self.ctx.members.list_all()[0].member_id
+        before = self.ctx.member_repo.get(uid).is_active
+        self.t.set_member_active(uid, not before)
+        self.assertEqual(self.ctx.member_repo.get(uid).is_active, before)  # 状態は変わらない
+
     def test_standby_shows_borrower(self):
         self.t.on_card("USER1"); self.t.choose_duration(60)
         self.t.go_standby()

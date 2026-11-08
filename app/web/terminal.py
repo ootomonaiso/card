@@ -13,11 +13,14 @@ from datetime import date, datetime
 from typing import Callable
 
 from app.context import AppContext
+from app.log import audit, get_logger
 from app.services.clock import from_iso
 from app.services.loan import LoanError
 from app.services.member import MemberError
 
 DURATION_LABELS = {15: "15分", 30: "30分", 60: "1時間", 120: "2時間", 240: "4時間", 480: "8時間"}
+
+_log = get_logger("terminal")
 
 
 class Terminal:
@@ -37,6 +40,9 @@ class Terminal:
 
         self._idle_timer: threading.Timer | None = None
         self._return_timer: threading.Timer | None = None
+        self._refresh_timer: threading.Timer | None = None
+        self._closed = False
+        self._start_refresh_loop()
 
     # ---------------------------------------------------------- 日時整形
     def _fmt(self, iso: str | None) -> str:
@@ -88,12 +94,25 @@ class Terminal:
                 return
             self._goto("standby", self._standby_payload())
 
-    def refresh(self) -> None:
-        """現在画面を作り直して再送（SSE再接続時の初期表示用）。"""
+    def _start_refresh_loop(self) -> None:
+        """待機画面の表示（延滞など）を定期的に最新化するタイマを回す（FR-09）。"""
+        if self._closed:
+            return
+        self._refresh_timer = threading.Timer(
+            self.cfg.standby_refresh_seconds, self._periodic_refresh
+        )
+        self._refresh_timer.daemon = True
+        self._refresh_timer.start()
+
+    def _periodic_refresh(self) -> None:
+        # ホーム（待受）に居るときだけ状況を再計算し、変化があれば push する。
         with self._lock:
-            if self.screen == "standby":
-                self.payload = self._standby_payload()
-            self._emit()
+            if self.screen == self._home_screen():
+                payload = self._standby_payload()
+                if payload != self.payload:
+                    self.payload = payload
+                    self._emit()
+        self._start_refresh_loop()
 
     # ---------------------------------------------------------- カードタッチ
     def on_card(self, idm: str) -> None:
@@ -110,12 +129,14 @@ class Terminal:
 
             member = self.ctx.auth.authenticate(idm)
             if member is None:
+                audit().info("認証失敗（未登録/無効） idm=%s", idm)
                 self._goto("error", {"reason": "この社員証は登録されていません"},
                            auto_return=self.cfg.result_screen_seconds)
                 return
             if member.is_admin:
+                audit().info("管理者ログイン member_id=%s name=%s", member.member_id, member.name)
                 self._admin = member
-                self._goto("admin_menu", {"admin_name": member.name})
+                self._goto("admin_menu", self._admin_menu_payload())
                 return
             returnable = self.ctx.loans.find_returnable_loan(member)
             if returnable is not None:
@@ -156,7 +177,12 @@ class Terminal:
         with self._lock:
             if self.screen != "return_confirm" or self._return_loan is None:
                 return
-            self.ctx.loans.return_loan(self._return_loan)
+            try:
+                self.ctx.loans.return_loan(self._return_loan)
+            except LoanError as e:
+                # 解錠失敗などは待機へ戻さずエラー画面で通知する（③）。
+                self._goto("error", {"reason": str(e)}, auto_return=self.cfg.result_screen_seconds)
+                return
             self._goto("unlock", {"mode": "return"}, auto_return=self.cfg.result_screen_seconds)
 
     def cancel(self) -> None:
@@ -167,7 +193,34 @@ class Terminal:
         with self._lock:
             if self._admin is None:
                 return
-            self._goto("admin_menu", {"admin_name": self._admin.name})
+            self._goto("admin_menu", self._admin_menu_payload())
+
+    def _admin_menu_payload(self) -> dict:
+        data: dict = {"admin_name": self._admin.name}
+        # 管理者自身の未返却があれば、管理メニューから返却できるようにする。
+        # （is_admin はカードタッチで admin_menu へ直行するため、通常の返却導線に乗らない）
+        loan = self.ctx.loans.find_returnable_loan(self._admin)
+        if loan is not None:
+            data["can_return"] = True
+            data["return_borrowed_at"] = self._fmt(loan.borrowed_at)
+            data["return_due_at"] = self._fmt(loan.due_at)
+        return data
+
+    def admin_return(self) -> None:
+        """管理メニューから、管理者自身が借りている物品を返却する。"""
+        with self._lock:
+            if self._admin is None:
+                return
+            loan = self.ctx.loans.find_returnable_loan(self._admin)
+            if loan is None:
+                self._goto("admin_menu", self._admin_menu_payload())
+                return
+            self._borrower = self._admin
+            self._return_loan = loan
+            self._goto("return_confirm", {
+                "borrowed_at": self._fmt(loan.borrowed_at),
+                "due_at": self._fmt(loan.due_at),
+            })
 
     def open_member_admin(self) -> None:
         with self._lock:
@@ -208,6 +261,9 @@ class Terminal:
 
     def register_member(self, name: str, employee_no: str, role: str) -> dict:
         with self._lock:
+            if self._admin is None:
+                audit().info("権限なしでメンバー登録を試行 → 拒否")
+                return {"ok": False, "message": "権限がありません"}
             self._reset_idle()
             try:
                 self.ctx.members.register(self._capture_idm or "", employee_no, name, role)
@@ -220,6 +276,9 @@ class Terminal:
 
     def set_member_active(self, member_id: int, active: bool) -> None:
         with self._lock:
+            if self._admin is None:
+                audit().info("権限なしでメンバー状態変更を試行 member_id=%s → 拒否", member_id)
+                return
             self._reset_idle()
             if active:
                 self.ctx.members.activate(member_id)
@@ -230,6 +289,9 @@ class Terminal:
 
     def export_report(self, start_s: str, end_s: str, path: str) -> dict:
         with self._lock:
+            if self._admin is None:
+                audit().info("権限なしでCSV出力を試行 → 拒否")
+                return {"ok": False, "message": "権限がありません"}
             self._reset_idle()
             try:
                 start = datetime.strptime(start_s.strip(), "%Y/%m/%d").date()
@@ -239,7 +301,12 @@ class Terminal:
             try:
                 n = self.ctx.reports.export_csv(start, end, path.strip())
             except OSError as e:
+                _log.error("CSV出力に失敗 path=%s: %s", path, e)
                 return {"ok": False, "message": str(e)}
+            audit().info(
+                "CSV出力 start=%s end=%s rows=%s path=%s",
+                start_s.strip(), end_s.strip(), n, path.strip(),
+            )
             return {"ok": True, "message": f"{n} 件を書き出しました → {path}"}
 
     # ---------------------------------------------------------- 無操作タイムアウト（NFR-06）
@@ -261,6 +328,7 @@ class Terminal:
             self._return_timer = None
 
     def shutdown(self) -> None:
-        for t in (self._idle_timer, self._return_timer):
+        self._closed = True  # 定期リフレッシュの再スケジュールを止める
+        for t in (self._idle_timer, self._return_timer, self._refresh_timer):
             if t is not None:
                 t.cancel()

@@ -4,6 +4,7 @@ from __future__ import annotations
 import sqlite3
 
 from app.domain.models import Member
+from app.log import audit
 from app.repository.members import MemberRepository
 from app.services.clock import Clock, to_iso
 
@@ -38,16 +39,23 @@ class MemberService:
             )
         except sqlite3.IntegrityError as e:
             raise MemberError("登録に失敗しました（重複の可能性）") from e
+        audit().info(
+            "メンバー登録 member_id=%s name=%s employee_no=%s role=%s",
+            member_id, name, employee_no, role,
+        )
         return self.members.get(member_id)  # type: ignore[return-value]
 
     def deactivate(self, member_id: int) -> None:
         self.members.set_active(member_id, False)
+        audit().info("メンバー無効化 member_id=%s", member_id)
 
     def activate(self, member_id: int) -> None:
         self.members.set_active(member_id, True)
+        audit().info("メンバー有効化 member_id=%s", member_id)
 
     def delete(self, member_id: int) -> None:
         self.members.delete(member_id)
+        audit().info("メンバー削除 member_id=%s", member_id)
 
     def list_all(self) -> list[Member]:
         return self.members.list_all(include_inactive=True)

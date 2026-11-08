@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# DB（WAL 有効時は -wal/-shm も生成される）
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# ログ（運用ログ／監査ログ）
+logs/
+
+# CSV 出力
+lending_log.csv

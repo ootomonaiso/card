@@ -7,6 +7,7 @@
   "min_reunlock_seconds": 3,
   "idle_timeout_seconds": 30,
   "result_screen_seconds": 6,
+  "standby_refresh_seconds": 20,
 
   "duration_choices_min": [15, 30, 60, 120, 240, 480],
   "csv_datetime_format": "%Y/%m/%d %H:%M",
@@ -20,5 +21,10 @@
   "lock_active_high": true,
 
   "card_reader": "auto",
-  "lock": "auto"
+  "lock": "auto",
+
+  "log_dir": "logs",
+  "log_level": "INFO",
+  "log_max_bytes": 1000000,
+  "log_backup_count": 7
 }

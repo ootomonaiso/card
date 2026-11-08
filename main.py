@@ -13,8 +13,9 @@ from __future__ import annotations
 
 import argparse
 
-from app.config import Config
+from app.config import Config, ConfigError
 from app.context import AppContext
+from app.log import get_logger, setup_logging
 
 
 def seed(ctx: AppContext) -> None:
@@ -38,7 +39,15 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8000, help="ポート（既定 8000）")
     args = parser.parse_args()
 
-    cfg = Config.load(args.config)
+    try:
+        cfg = Config.load(args.config)
+    except ConfigError as e:
+        parser.error(str(e))
+
+    setup_logging(cfg)
+    log = get_logger("main")
+    log.info("起動: item=%s db=%s", cfg.item_name, cfg.db_path)
+
     ctx = AppContext.create(cfg)
 
     if args.init:

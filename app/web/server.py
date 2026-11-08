@@ -14,10 +14,13 @@ from pathlib import Path
 
 from app.context import AppContext
 from app.devices.mock import MockCardReader
+from app.log import get_logger
 from app.web.terminal import DURATION_LABELS, Terminal
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
+
+_log = get_logger("web")
 
 _CONTENT_TYPES = {".html": "text/html; charset=utf-8",
                   ".js": "application/javascript; charset=utf-8",
@@ -66,6 +69,10 @@ class KioskServer(ThreadingHTTPServer):
         close = getattr(self.ctx.lock, "close", None)
         if callable(close):
             close()
+        try:
+            self.ctx.conn.close()
+        except Exception:
+            pass
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -142,7 +149,18 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         body = self._read_json()
-        result = self._dispatch(body)
+        try:
+            result = self._dispatch(body)
+        except (KeyError, ValueError, TypeError) as e:
+            # 欠落キーや非数値など、壊れた操作リクエストは 400 相当で握る
+            # （未捕捉だとハンドラスレッドで例外になり、クライアントは無応答になる）
+            _log.warning("不正な操作リクエスト type=%s: %s", body.get("type"), e)
+            self.send_response(400)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": False, "message": "不正なリクエストです"},
+                                        ensure_ascii=False).encode("utf-8"))
+            return
         self._send_json(result if result is not None else {"ok": True})
 
     def _dispatch(self, body: dict):
@@ -157,6 +175,8 @@ class _Handler(BaseHTTPRequestHandler):
             t.choose_duration(int(body["minutes"]))
         elif action == "confirm_return":
             t.confirm_return()
+        elif action == "admin_return":
+            t.admin_return()
         elif action == "cancel":
             t.cancel()
         elif action == "admin_menu":

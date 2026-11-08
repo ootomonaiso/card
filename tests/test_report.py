@@ -40,6 +40,15 @@ class CsvTest(unittest.TestCase):
         self.assertEqual(rows[1][5], "2026/11/08 10:30")
         self.assertEqual(rows[1][6], "2026/11/08 10:12")
 
+    def test_csv_injection_neutralized(self):
+        # 氏名が数式開始文字なら ' を前置して無害化する（CSVインジェクション対策）
+        evil = self.ctx.members.register("CC33", "100888", "=cmd|'/c calc'!A1", "user")
+        self.ctx.loans.borrow(evil, 60)
+        rows = self.ctx.reports.build_rows(
+            datetime(2026, 11, 1).date(), datetime(2026, 11, 30).date()
+        )
+        self.assertTrue(rows[0][0].startswith("'="))
+
     def test_csv_excludes_out_of_range(self):
         # 期間外の貸出は出力されない
         self.ctx.loans.borrow(self.taro, 60)

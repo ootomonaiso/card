@@ -4,16 +4,20 @@
 """
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import dataclass
 from datetime import timedelta
 
 from app.config import Config
-from app.devices.base import LockController
+from app.devices.base import LockController, LockError
 from app.domain.models import Loan, Member
+from app.log import audit, get_logger
 from app.repository.items import ItemRepository
 from app.repository.loans import LoanRepository
 from app.repository.members import MemberRepository
 from app.services.clock import Clock, from_iso, to_iso
+
+_log = get_logger("loan")
 
 
 class LoanError(Exception):
@@ -76,14 +80,33 @@ class LoanService:
 
         now = self.clock.now()
         due = now + timedelta(minutes=duration_min)
-        loan_id = self.loans.insert(
-            member_id=member.member_id,
-            item_id=item.item_id,
-            borrowed_at=to_iso(now),
-            duration_min=duration_min,
-            due_at=to_iso(due),
+
+        # 先に解錠する（扉が開いて初めて貸出成立とする）。
+        # ハード故障時は記録を残さず失敗させ、「貸出中なのに扉が開いていない」
+        # 不整合を防ぐ（③ハード故障の検知と表示）。
+        try:
+            self.lock.unlock()  # FR-05 解錠
+        except LockError as e:
+            _log.error("解錠失敗（貸出） member_id=%s: %s", member.member_id, e)
+            raise LoanError("解錠に失敗しました。係員にお知らせください") from e
+
+        try:
+            loan_id = self.loans.insert(
+                member_id=member.member_id,
+                item_id=item.item_id,
+                borrowed_at=to_iso(now),
+                duration_min=duration_min,
+                due_at=to_iso(due),
+            )
+        except sqlite3.IntegrityError as e:
+            # 部分ユニークインデックス（貸出中は1件）に抵触＝直前に他経路で貸出確定。
+            _log.error("貸出記録の競合 member_id=%s: %s", member.member_id, e)
+            raise LoanError("貸出中のため借りられません") from e
+
+        audit().info(
+            "貸出 loan_id=%s member_id=%s name=%s item=%s duration_min=%s due=%s",
+            loan_id, member.member_id, member.name, item.name, duration_min, to_iso(due),
         )
-        self.lock.unlock()  # FR-05 解錠
         return Loan(
             loan_id=loan_id,
             member_id=member.member_id,
@@ -112,5 +135,15 @@ class LoanService:
 
     def return_loan(self, loan: Loan) -> None:
         now = self.clock.now()
+        # 返却も先に解錠する。扉が開かなければ物品を戻せないため、
+        # 解錠に失敗したら返却扱いにしない（貸出中のまま）。
+        try:
+            self.lock.unlock()  # FR-05 解錠
+        except LockError as e:
+            _log.error("解錠失敗（返却） loan_id=%s: %s", loan.loan_id, e)
+            raise LoanError("解錠に失敗しました。係員にお知らせください") from e
         self.loans.mark_returned(loan.loan_id, to_iso(now))
-        self.lock.unlock()  # FR-05 解錠
+        audit().info(
+            "返却 loan_id=%s member_id=%s returned_at=%s",
+            loan.loan_id, loan.member_id, to_iso(now),
+        )
