@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 セキュアカメラ貸出システム 図面ジェネレータ
+
+【非推奨 / DEPRECATED】
+UML 図は各設計書（docs/*.md）内の Mermaid が正、回路図は docs/diagrams/*.svg に移行した。
+手置きレイアウトの draw.io 書き出しは読みづらく保守コストも高いため、本スクリプトと
+出力 `全図面.drawio` は段階的に廃止する。詳細は docs/diagrams/README.md を参照。
+
+（以下は旧実装。参考のため残置）
 docs/ 内の Mermaid 図を draw.io (.drawio) のマルチページファイルに起こす。
 出力: docs/diagrams/全図面.drawio （各図＝1ページ/タブ）
 """

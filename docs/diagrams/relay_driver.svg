@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 600" font-family="'Segoe UI',system-ui,sans-serif">
+  <style>
+    .wire{stroke:#111;stroke-width:2;fill:none}
+    .comp{stroke:#111;stroke-width:2;fill:none}
+    .fillw{fill:#fff;stroke:#111;stroke-width:2}
+    .node{fill:#111}
+    .lbl{fill:#111;font-size:14px}
+    .val{fill:#0b5bbf;font-size:14px;font-weight:600}
+    .ttl{fill:#111;font-size:19px;font-weight:700}
+    .note{fill:#222;font-size:13px}
+    .rail{fill:#b00;font-size:14px;font-weight:700}
+    .link{stroke:#777;stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+  </style>
+  <rect x="0" y="0" width="940" height="600" fill="#ffffff"/>
+  <text x="24" y="34" class="ttl">ロック駆動回路（リレー方式） ― Raspberry Pi 4</text>
+
+  <!-- rails -->
+  <line x1="250" y1="110" x2="470" y2="110" class="wire"/>
+  <text x="250" y="100" class="rail">+5V（リレーコイル用）</text>
+  <line x1="560" y1="110" x2="900" y2="110" class="wire"/>
+  <text x="560" y="100" class="rail">+V（ロック用DC電源）</text>
+  <line x1="180" y1="470" x2="900" y2="470" class="wire"/>
+  <text x="182" y="490" class="lbl">GND（Raspberry Pi と共通）</text>
+
+  <!-- Raspberry Pi 4 -->
+  <rect x="40" y="300" width="150" height="150" rx="10" class="fillw"/>
+  <text x="115" y="370" text-anchor="middle" class="lbl" font-weight="700">Raspberry</text>
+  <text x="115" y="390" text-anchor="middle" class="lbl" font-weight="700">Pi 4</text>
+  <line x1="190" y1="350" x2="220" y2="350" class="wire"/>
+  <circle cx="190" cy="350" r="3" class="node"/>
+  <text x="186" y="344" text-anchor="end" class="lbl">GPIO17</text>
+  <line x1="190" y1="410" x2="220" y2="410" class="wire"/>
+  <circle cx="190" cy="410" r="3" class="node"/>
+  <text x="186" y="415" text-anchor="end" class="lbl">GND</text>
+
+  <!-- base resistor Rb -->
+  <path d="M220,350 l6,0 l3,-9 l6,18 l6,-18 l6,18 l6,-18 l3,9 l9,0" class="comp"/>
+  <line x1="265" y1="350" x2="302" y2="350" class="wire"/>
+  <text x="222" y="336" class="lbl">Rb <tspan class="val">1kΩ</tspan></text>
+
+  <!-- NPN transistor Q1 -->
+  <line x1="302" y1="330" x2="302" y2="372" class="comp"/>
+  <line x1="302" y1="340" x2="336" y2="314" class="wire"/>
+  <line x1="302" y1="362" x2="336" y2="388" class="wire"/>
+  <polygon points="336,388 324,384 330,376" class="node"/>
+  <line x1="336" y1="388" x2="336" y2="470" class="wire"/>
+  <line x1="336" y1="314" x2="336" y2="295" class="wire"/>
+  <circle cx="336" cy="295" r="3.5" class="node"/>
+  <text x="346" y="356" class="lbl" font-weight="700">Q1 NPN</text>
+  <text x="346" y="372" class="note">例: 2SC1815 / 2N2222</text>
+  <text x="312" y="330" class="note">C</text>
+  <text x="312" y="402" class="note">E</text>
+
+  <!-- relay coil -->
+  <line x1="336" y1="110" x2="336" y2="150" class="wire"/>
+  <circle cx="336" cy="110" r="3.5" class="node"/>
+  <path d="M336,150 q16,10 0,20 q16,10 0,20 q16,10 0,20 q16,10 0,20 q16,10 0,20" class="comp"/>
+  <line x1="336" y1="250" x2="336" y2="295" class="wire"/>
+  <text x="300" y="205" text-anchor="end" class="lbl">リレーコイル</text>
+
+  <!-- coil flyback diode Dc -->
+  <line x1="430" y1="110" x2="430" y2="150" class="wire"/>
+  <circle cx="430" cy="110" r="3.5" class="node"/>
+  <line x1="416" y1="152" x2="444" y2="152" class="comp"/>
+  <polygon points="416,180 444,180 430,154" class="fillw"/>
+  <polyline points="430,180 430,295 336,295" class="wire"/>
+  <text x="450" y="162" class="lbl" font-weight="700">Dc</text>
+  <text x="450" y="178" class="note">還流</text>
+
+  <!-- Pi GND to rail -->
+  <polyline points="220,410 262,410 262,470" class="wire"/>
+  <circle cx="262" cy="470" r="3.5" class="node"/>
+
+  <!-- relay contact (COM / NO) -->
+  <line x1="640" y1="110" x2="640" y2="250" class="wire"/>
+  <circle cx="640" cy="110" r="3.5" class="node"/>
+  <circle cx="640" cy="250" r="3.5" class="node"/>
+  <text x="636" y="244" text-anchor="end" class="note">COM</text>
+  <!-- moving arm (shown open = relay off) -->
+  <line x1="640" y1="250" x2="708" y2="224" class="comp"/>
+  <!-- fixed NO contact -->
+  <line x1="718" y1="230" x2="718" y2="250" class="comp"/>
+  <circle cx="718" cy="250" r="3.5" class="node"/>
+  <text x="726" y="228" class="note">NO</text>
+  <line x1="718" y1="250" x2="718" y2="290" class="wire"/>
+  <circle cx="718" cy="290" r="3.5" class="node"/>
+
+  <!-- mechanical coupling coil<->arm -->
+  <line x1="362" y1="205" x2="676" y2="238" class="link"/>
+  <text x="470" y="214" class="note" fill="#777">リレー連動（電気的に非接続）</text>
+
+  <!-- solenoid -->
+  <line x1="718" y1="290" x2="718" y2="300" class="wire"/>
+  <path d="M718,300 q16,10 0,20 q16,10 0,20 q16,10 0,20 q16,10 0,20" class="comp"/>
+  <line x1="718" y1="380" x2="718" y2="470" class="wire"/>
+  <text x="700" y="330" text-anchor="end" class="lbl" font-weight="700">ソレノイドロック</text>
+  <text x="700" y="346" text-anchor="end" class="note">LE-53（通電時解錠）</text>
+
+  <!-- load flyback diode Dl -->
+  <line x1="718" y1="290" x2="812" y2="290" class="wire"/>
+  <line x1="798" y1="312" x2="826" y2="312" class="comp"/>
+  <polygon points="798,340 826,340 812,314" class="fillw"/>
+  <line x1="812" y1="290" x2="812" y2="312" class="wire"/>
+  <line x1="812" y1="340" x2="812" y2="470" class="wire"/>
+  <text x="836" y="320" class="lbl" font-weight="700">Dl</text>
+  <text x="836" y="336" class="note">還流ダイオード</text>
+
+  <!-- ground symbol -->
+  <line x1="560" y1="470" x2="560" y2="492" class="wire"/>
+  <circle cx="560" cy="470" r="3.5" class="node"/>
+  <line x1="542" y1="492" x2="578" y2="492" class="comp"/>
+  <line x1="548" y1="499" x2="572" y2="499" class="comp"/>
+  <line x1="554" y1="506" x2="566" y2="506" class="comp"/>
+
+  <!-- notes -->
+  <text x="24" y="528" class="note">① GPIO17 を HIGH にすると Q1 が ON → コイルに通電 → 接点が閉じてソレノイドが解錠。数秒後に OFF（NFR-08）。</text>
+  <text x="24" y="548" class="note">② 還流ダイオードはコイル側 Dc とソレノイド側 Dl の両方に入れる（OFF 時の逆起電力から素子を保護）。</text>
+  <text x="24" y="568" class="note">③ リレーは機械接点で絶縁が容易。コイル定格（例 5V）とロック電源を分け、GND は必ず共通にする。</text>
+  <text x="24" y="588" class="note">④ 市販「リレーモジュール」は Q1・Dc・抵抗を基板内蔵。その場合は GPIO17=IN とコイル側 VCC/GND を配線するだけ。</text>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 580" font-family="'Segoe UI',system-ui,sans-serif">
+  <style>
+    .wire{stroke:#111;stroke-width:2;fill:none}
+    .arrow{stroke:#111;stroke-width:2;fill:none;marker-end:url(#ah)}
+    .box{fill:#fff;stroke:#111;stroke-width:2}
+    .pi{fill:#eef4fb;stroke:#0b5bbf;stroke-width:2.5}
+    .lbl{fill:#111;font-size:14px}
+    .sub{fill:#444;font-size:12px}
+    .ttl{fill:#111;font-size:19px;font-weight:700}
+    .conn{fill:#0b5bbf;font-size:13px;font-weight:600}
+    .pinhdr{fill:#111;font-size:14px;font-weight:700}
+    .pin{fill:#b00;font-size:13px;font-weight:600}
+  </style>
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="920" height="580" fill="#ffffff"/>
+  <text x="24" y="34" class="ttl">接続構成図（配線概要） ― Raspberry Pi 4</text>
+
+  <!-- Raspberry Pi 4 -->
+  <rect x="370" y="90" width="180" height="250" rx="12" class="pi"/>
+  <text x="460" y="118" text-anchor="middle" class="lbl" font-weight="700">Raspberry Pi 4</text>
+  <text x="460" y="136" text-anchor="middle" class="sub">Model B</text>
+  <line x1="370" y1="150" x2="550" y2="150" stroke="#9bb8da" stroke-dasharray="3 3"/>
+  <text x="460" y="172" text-anchor="middle" class="sub">USB×4 / GPIO 40pin</text>
+  <text x="460" y="190" text-anchor="middle" class="sub">DSI・HDMI / I2C</text>
+
+  <!-- peripherals (left) -->
+  <rect x="60" y="110" width="190" height="56" class="box"/>
+  <text x="155" y="134" text-anchor="middle" class="lbl" font-weight="700">カードリーダー</text>
+  <text x="155" y="152" text-anchor="middle" class="sub">Sony RC-S380</text>
+
+  <rect x="60" y="210" width="190" height="64" class="box"/>
+  <text x="155" y="236" text-anchor="middle" class="lbl" font-weight="700">タッチスクリーン</text>
+  <text x="155" y="256" text-anchor="middle" class="sub">Pi用ディスプレイ</text>
+
+  <rect x="60" y="312" width="190" height="56" class="box"/>
+  <text x="155" y="336" text-anchor="middle" class="lbl" font-weight="700">USBメモリ</text>
+  <text x="155" y="354" text-anchor="middle" class="sub">CSV持ち出し（任意）</text>
+
+  <!-- peripherals (right) -->
+  <rect x="670" y="104" width="200" height="80" class="box"/>
+  <text x="770" y="130" text-anchor="middle" class="lbl" font-weight="700">ロック駆動回路</text>
+  <text x="770" y="150" text-anchor="middle" class="sub">MOSFET / リレー方式</text>
+  <text x="770" y="170" text-anchor="middle" class="sub">＋ 還流ダイオード</text>
+
+  <rect x="670" y="214" width="200" height="56" class="box"/>
+  <text x="770" y="238" text-anchor="middle" class="lbl" font-weight="700">ソレノイドロック</text>
+  <text x="770" y="256" text-anchor="middle" class="sub">LE-53（通電時解錠）</text>
+
+  <rect x="670" y="312" width="200" height="56" class="box"/>
+  <text x="770" y="336" text-anchor="middle" class="lbl" font-weight="700">RTC モジュール</text>
+  <text x="770" y="354" text-anchor="middle" class="sub">I2C（ネットワーク無時・任意）</text>
+
+  <!-- connections left -> Pi -->
+  <path d="M250,138 L368,150" class="arrow"/>
+  <text x="300" y="130" text-anchor="middle" class="conn">USB</text>
+  <path d="M250,242 L368,205" class="arrow"/>
+  <text x="305" y="238" text-anchor="middle" class="conn">DSI / HDMI + USB</text>
+  <path d="M250,340 L368,270" class="arrow"/>
+  <text x="300" y="320" text-anchor="middle" class="conn">USB</text>
+
+  <!-- connections Pi -> right -->
+  <path d="M552,150 L668,144" class="arrow"/>
+  <text x="610" y="134" text-anchor="middle" class="conn">GPIO17 + GND</text>
+  <path d="M770,184 L770,212" class="arrow"/>
+  <text x="854" y="202" text-anchor="middle" class="conn">通電（数秒）</text>
+  <path d="M552,250 L668,330" class="arrow"/>
+  <text x="610" y="300" text-anchor="middle" class="conn">I2C (SDA/SCL)</text>
+
+  <!-- pin usage table -->
+  <rect x="60" y="404" width="810" height="150" rx="6" class="box"/>
+  <text x="74" y="428" class="pinhdr">GPIO 40ピンヘッダ 使用ピン（抜粋）</text>
+  <line x1="60" y1="438" x2="870" y2="438" stroke="#111" stroke-width="1"/>
+  <text x="74" y="462" class="lbl"><tspan class="pin">物理11 / GPIO17(BCM)</tspan>　→　ロック駆動回路の入力（MOSFETゲート or Trベース）。HIGHで解錠。</text>
+  <text x="74" y="486" class="lbl"><tspan class="pin">物理6 / 9 / 14 …（GND）</tspan>　→　駆動回路の GND。ロック用電源の GND と必ず共通にする。</text>
+  <text x="74" y="510" class="lbl"><tspan class="pin">物理3 / GPIO2(SDA1)</tspan>・<tspan class="pin">物理5 / GPIO3(SCL1)</tspan>　→　RTC の SDA / SCL（任意）。</text>
+  <text x="74" y="534" class="lbl"><tspan class="pin">物理2 / 4（5V）</tspan>　→　周辺機器の電源が必要な場合に使用（ソレノイドは別電源推奨）。</text>
+</svg>
