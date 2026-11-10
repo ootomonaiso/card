@@ -48,7 +48,7 @@
 
   <rect x="670" y="214" width="200" height="56" class="box"/>
   <text x="770" y="238" text-anchor="middle" class="lbl" font-weight="700">ソレノイドロック</text>
-  <text x="770" y="256" text-anchor="middle" class="sub">LE-53（通電時解錠）</text>
+  <text x="770" y="256" text-anchor="middle" class="sub">LE-53 / DC5V・2W（通電時解錠）</text>
 
   <rect x="670" y="312" width="200" height="56" class="box"/>
   <text x="770" y="336" text-anchor="middle" class="lbl" font-weight="700">RTC モジュール</text>

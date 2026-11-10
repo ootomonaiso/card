@@ -15,7 +15,7 @@
 
   <!-- +V rail -->
   <line x1="300" y1="90" x2="782" y2="90" class="wire"/>
-  <text x="300" y="80" class="rail">+V（ロック用DC電源）</text>
+  <text x="300" y="80" class="rail">+5V（ロック用電源）</text>
 
   <!-- GND rail -->
   <line x1="180" y1="470" x2="782" y2="470" class="wire"/>
@@ -79,7 +79,7 @@
   <path d="M500,112 q18,11 0,22 q18,11 0,22 q18,11 0,22 q18,11 0,22 q18,11 0,22" class="comp"/>
   <line x1="500" y1="212" x2="500" y2="230" class="wire"/>
   <text x="478" y="150" text-anchor="end" class="lbl" font-weight="700">ソレノイドロック LE-53</text>
-  <text x="478" y="168" text-anchor="end" class="note">（通電時に解錠）</text>
+  <text x="478" y="168" text-anchor="end" class="note">DC5V / 2W（≈0.4A）通電時解錠</text>
 
   <!-- Flyback diode D1 parallel to the coil -->
   <polyline points="610,90 610,166" class="wire"/>
@@ -105,7 +105,7 @@
   <text x="744" y="248" class="rail">+</text>
   <text x="746" y="300" class="lbl">−</text>
   <text x="700" y="330" text-anchor="middle" class="note">ロック用</text>
-  <text x="700" y="346" text-anchor="middle" class="note">DC電源</text>
+  <text x="700" y="346" text-anchor="middle" class="note">DC5V</text>
 
   <!-- ground symbol -->
   <line x1="640" y1="470" x2="640" y2="492" class="wire"/>
@@ -122,5 +122,5 @@
   <text x="24" y="546" class="note">① 施錠は人手。GPIO17 を HIGH で数秒だけ ON にして解錠し、その後必ず OFF へ（連続通電しない：NFR-08）。</text>
   <text x="24" y="566" class="note">② 還流ダイオード D1 は必須。OFF 時にコイルが生む逆起電力（サージ）から Q1 を保護する。</text>
   <text x="24" y="586" class="note">③ ロック用電源は Pi と分離推奨。ただし GND は必ず共通に接続する（基準電位をそろえる）。</text>
-  <text x="24" y="606" class="note">④ LE-53 の定格電圧・電流で電源容量と Q1(Vds,Id)・D1 を選定。3.3V でフル ON するロジックレベル MOSFET を使う。</text>
+  <text x="24" y="606" class="note">④ LE-53＝DC5V・2W（≈0.4A, タキゲン）。電源は 5V/1A 以上が目安。Q1 は 0.4A 以上のロジックレベル MOSFET（例: IRLZ44N）。</text>
 </svg>

@@ -18,7 +18,7 @@
   <line x1="250" y1="110" x2="470" y2="110" class="wire"/>
   <text x="250" y="100" class="rail">+5V（リレーコイル用）</text>
   <line x1="560" y1="110" x2="900" y2="110" class="wire"/>
-  <text x="560" y="100" class="rail">+V（ロック用DC電源）</text>
+  <text x="560" y="100" class="rail">+5V（ロック用電源）</text>
   <line x1="180" y1="470" x2="900" y2="470" class="wire"/>
   <text x="182" y="490" class="lbl">GND（Raspberry Pi と共通）</text>
 
@@ -94,7 +94,7 @@
   <path d="M718,300 q16,10 0,20 q16,10 0,20 q16,10 0,20 q16,10 0,20" class="comp"/>
   <line x1="718" y1="380" x2="718" y2="470" class="wire"/>
   <text x="700" y="330" text-anchor="end" class="lbl" font-weight="700">ソレノイドロック</text>
-  <text x="700" y="346" text-anchor="end" class="note">LE-53（通電時解錠）</text>
+  <text x="700" y="346" text-anchor="end" class="note">LE-53 DC5V/2W（≈0.4A）</text>
 
   <!-- load flyback diode Dl -->
   <line x1="718" y1="290" x2="812" y2="290" class="wire"/>
