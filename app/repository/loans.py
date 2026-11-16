@@ -31,6 +31,26 @@ class LoanRepository:
         ).fetchone()
         return _row_to_loan(row) if row else None
 
+    def list_open(self) -> list[Loan]:
+        """全物品の貸出中（returned_at IS NULL）ログを item_id 昇順で返す。
+
+        物品ごとの状況一覧（status_list）を1クエリで組み立てるために使う。
+        部分ユニークインデックス idx_loan_one_open により、物品ごとに最大1件。
+        """
+        rows = self.conn.execute(
+            "SELECT * FROM LOAN WHERE returned_at IS NULL ORDER BY item_id"
+        ).fetchall()
+        return [_row_to_loan(r) for r in rows]
+
+    def list_open_for_member(self, member_id: int) -> list[Loan]:
+        """指定メンバーの貸出中ログ（本人の返却候補）。"""
+        rows = self.conn.execute(
+            "SELECT * FROM LOAN WHERE member_id = ? AND returned_at IS NULL"
+            " ORDER BY item_id",
+            (member_id,),
+        ).fetchall()
+        return [_row_to_loan(r) for r in rows]
+
     def count_open(self, item_id: int) -> int:
         row = self.conn.execute(
             "SELECT COUNT(*) AS c FROM LOAN WHERE item_id = ? AND returned_at IS NULL",
@@ -54,12 +74,14 @@ class LoanRepository:
         self.conn.commit()
         return int(cur.lastrowid)
 
-    def mark_returned(self, loan_id: int, returned_at: str) -> None:
-        self.conn.execute(
+    def mark_returned(self, loan_id: int, returned_at: str) -> int:
+        """返却日時を記録する。更新できた行数（0=既に返却済み等）を返す。"""
+        cur = self.conn.execute(
             "UPDATE LOAN SET returned_at = ? WHERE loan_id = ? AND returned_at IS NULL",
             (returned_at, loan_id),
         )
         self.conn.commit()
+        return cur.rowcount
 
     def list_borrowed_between(self, start_iso: str, end_iso: str) -> list[Loan]:
         """borrowed_at が [start, end] に含まれる貸借ログ（CSV対象）。"""

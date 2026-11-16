@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from app.config import Config
 from app.devices.base import LockController, LockError
-from app.domain.models import Loan, Member
+from app.domain.models import Item, Loan, Member
 from app.log import audit, get_logger
 from app.repository.items import ItemRepository
 from app.repository.loans import LoanRepository
@@ -25,8 +25,11 @@ class LoanError(Exception):
 
 
 @dataclass(frozen=True)
-class LoanStatus:
-    """待機画面(S01)向けの現在状況。"""
+class ItemStatus:
+    """待機画面(S01)向けの、1物品ぶんの現在状況。"""
+    item_id: int
+    name: str
+    location: str | None
     is_lent: bool
     borrower_name: str | None
     borrower_employee_no: str | None
@@ -53,28 +56,52 @@ class LoanService:
         self.lock = lock
 
     # ---- 状況（FR-04 / FR-09） ----
-    def status(self) -> LoanStatus:
-        item = self.items.default_item()
-        open_loan = self.loans.open_loan_for_item(item.item_id)
-        if open_loan is None:
-            return LoanStatus(False, None, None, None, False, None)
-        borrower = self.members.get(open_loan.member_id)
+    def status_list(self) -> list[ItemStatus]:
+        """全ての有効な物品について、貸出状況を1クエリ分のまとめで返す。
+
+        貸出中ログは list_open() で一括取得し、物品ごとに突き合わせる
+        （物品数が増えてもクエリ回数が膨らまないようにする）。
+        """
+        open_by_item = {ln.item_id: ln for ln in self.loans.list_open()}
         now = self.clock.now()
-        return LoanStatus(
-            is_lent=True,
-            borrower_name=borrower.name if borrower else None,
-            borrower_employee_no=borrower.employee_no if borrower else None,
-            due_at=open_loan.due_at,
-            is_overdue=open_loan.is_overdue(now),
-            open_loan=open_loan,
-        )
+        result: list[ItemStatus] = []
+        for item in self.items.list_active():
+            open_loan = open_by_item.get(item.item_id)
+            if open_loan is None:
+                result.append(ItemStatus(
+                    item_id=item.item_id, name=item.name, location=item.location,
+                    is_lent=False, borrower_name=None, borrower_employee_no=None,
+                    due_at=None, is_overdue=False, open_loan=None,
+                ))
+                continue
+            borrower = self.members.get(open_loan.member_id)
+            result.append(ItemStatus(
+                item_id=item.item_id, name=item.name, location=item.location,
+                is_lent=True,
+                borrower_name=borrower.name if borrower else None,
+                borrower_employee_no=borrower.employee_no if borrower else None,
+                due_at=open_loan.due_at,
+                is_overdue=open_loan.is_overdue(now),
+                open_loan=open_loan,
+            ))
+        return result
+
+    def available_items(self) -> list[Item]:
+        """いま貸出可能な（有効かつ空いている）物品の一覧。"""
+        open_ids = {ln.item_id for ln in self.loans.list_open()}
+        return [it for it in self.items.list_active() if it.item_id not in open_ids]
 
     # ---- 貸出（FR-02） ----
-    def borrow(self, member: Member, duration_min: int) -> Loan:
+    def borrow(self, member: Member, item_id: int, duration_min: int) -> Loan:
         if duration_min not in self.cfg.duration_choices_min:
             raise LoanError(f"不正な貸出時間です: {duration_min}")
-        item = self.items.default_item()
-        # 鍵は1本（CON-3）。空きでなければ貸出不可。
+        item = self.items.get(item_id)
+        if item is None or not item.is_active:
+            raise LoanError("指定された物品は利用できません")
+        # 物品ごとに錠1本（CON-3）。空きでなければ貸出不可。
+        # 現状は錠が1ch（全物品共用）だが、将来ロッカーを増設して物品ごとに
+        # 錠を分ける場合は factory で item_id→LockController を引けるようにし、
+        # ここで item に対応する錠を取得して解錠する想定（デバイス層は今回不改造）。
         if self.loans.count_open(item.item_id) > 0:
             raise LoanError("貸出中のため借りられません")
 
@@ -118,20 +145,18 @@ class LoanService:
         )
 
     # ---- 返却（FR-03） ----
-    def find_returnable_loan(self, member: Member) -> Loan | None:
-        """このメンバーが返却できる貸出中ログ。
+    def find_returnable_loans(self, member: Member) -> list[Loan]:
+        """このメンバーが返却できる貸出中ログの一覧（複数物品対応）。
 
         既定は「本人の貸出のみ」。allow_return_by_others=True なら他人の分も可（[10] Q6）。
+        本人の貸出を先頭に並べる（自分の分を優先して返せるように）。
         """
-        item = self.items.default_item()
-        open_loan = self.loans.open_loan_for_item(item.item_id)
-        if open_loan is None:
-            return None
-        if open_loan.member_id == member.member_id:
-            return open_loan
         if self.cfg.allow_return_by_others:
-            return open_loan
-        return None
+            own = self.loans.list_open_for_member(member.member_id)
+            own_ids = {ln.loan_id for ln in own}
+            others = [ln for ln in self.loans.list_open() if ln.loan_id not in own_ids]
+            return own + others
+        return self.loans.list_open_for_member(member.member_id)
 
     def return_loan(self, loan: Loan) -> None:
         now = self.clock.now()
@@ -142,7 +167,13 @@ class LoanService:
         except LockError as e:
             _log.error("解錠失敗（返却） loan_id=%s: %s", loan.loan_id, e)
             raise LoanError("解錠に失敗しました。係員にお知らせください") from e
-        self.loans.mark_returned(loan.loan_id, to_iso(now))
+        updated = self.loans.mark_returned(loan.loan_id, to_iso(now))
+        if updated == 0:
+            # 既に返却済み（画面状態が古い等）。扉は開けてしまったが DB は
+            # 整合しているため、異常として記録だけ残し正常終了する（NFR-04）。
+            _log.warning("返却記録なし（既に返却済み） loan_id=%s", loan.loan_id)
+            audit().info("返却スキップ（既に返却済み） loan_id=%s", loan.loan_id)
+            return
         audit().info(
             "返却 loan_id=%s member_id=%s returned_at=%s",
             loan.loan_id, loan.member_id, to_iso(now),

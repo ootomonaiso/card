@@ -1,53 +1,445 @@
+/* =====================================================================
+   貸出管理システム — Material Design 3 スタイル
+   構成: 1) デザイントークン  2) ベース  3) タイポグラフィ
+         4) 部品（ボタン/カード/入力/リスト/チップ）  5) 画面別  6) devbar
+   キオスク端末（Pi4 + タッチパネル / Chromium）前提。外部リソースは一切不使用。
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1) デザイントークン（MD3 の色役割）
+   基調はダークスキーム。:root[data-theme="light"] で将来ライト切替可能。
+   色は本文テキストで WCAG コントラスト比 4.5:1 以上を確保する。
+   --------------------------------------------------------------------- */
 :root {
-  --bg: #0f172a; --fg: #f1f5f9; --muted: #94a3b8; --card: #1e293b;
-  --accent: #2563eb; --accent2: #1d4ed8;
-  --ok: #16a34a; --warn: #f59e0b; --danger: #dc2626;
+  /* サーフェス階層 */
+  --md-surface:                 #111318;
+  --md-surface-container-lowest: #0b0e13;
+  --md-surface-container-low:   #191c20;
+  --md-surface-container:       #1d2025;
+  --md-surface-container-high:  #282b30;
+  --md-surface-container-highest:#33353b;
+  --md-on-surface:              #e3e2e9;
+  --md-on-surface-variant:      #c5c6d0;
+  --md-outline:                 #8e9099;
+  --md-outline-variant:         #43474e;
+
+  /* プライマリ（主要操作） */
+  --md-primary:                 #aac7ff;
+  --md-on-primary:              #09305f;
+  --md-primary-container:       #284777;
+  --md-on-primary-container:    #d6e3ff;
+
+  /* セカンダリ（副次操作・トーナル） */
+  --md-secondary:               #bfc6dc;
+  --md-secondary-container:     #3b4659;
+  --md-on-secondary-container:  #dae2f9;
+
+  /* エラー（危険・延滞） */
+  --md-error:                   #ffb4ab;
+  --md-on-error:                #690005;
+  --md-error-container:         #93000a;
+  --md-on-error-container:      #ffdad6;
+
+  /* 拡張: 状態色（空き=緑 / 貸出中=注意）。MD3 の tertiary 流儀に合わせた命名 */
+  --md-success:                 #86d897;
+  --md-success-container:       #17502c;
+  --md-on-success-container:    #a3f2b4;
+  --md-warning:                 #f3c04a;
+  --md-warning-container:       #4b3a00;
+  --md-on-warning-container:    #ffdf9e;
+
+  /* 状態レイヤの不透明度（MD3: hover 8% / pressed 12%） */
+  --state-hover: 0.08;
+  --state-press: 0.12;
+
+  /* 形状（角丸）とグリッド（8dp） */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+  --gap: 8px;
+
+  color-scheme: dark;
 }
+
+/* 将来のライト切替用（キオスク既定はダーク）。トグルで data-theme を付与する。 */
+:root[data-theme="light"] {
+  --md-surface:                 #fbf8fd;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low:   #f4f1f7;
+  --md-surface-container:       #efedf1;
+  --md-surface-container-high:  #e9e7eb;
+  --md-surface-container-highest:#e3e1e6;
+  --md-on-surface:              #1a1c20;
+  --md-on-surface-variant:      #43474e;
+  --md-outline:                 #73777f;
+  --md-outline-variant:         #c3c6cf;
+
+  --md-primary:                 #38608f;
+  --md-on-primary:              #ffffff;
+  --md-primary-container:       #d3e3ff;
+  --md-on-primary-container:    #1a3b63;
+
+  --md-secondary:               #545f71;
+  --md-secondary-container:     #d8e3f8;
+  --md-on-secondary-container:  #3d4758;
+
+  --md-error:                   #ba1a1a;
+  --md-on-error:                #ffffff;
+  --md-error-container:         #ffdad6;
+  --md-on-error-container:      #410002;
+
+  --md-success:                 #276a3c;
+  --md-success-container:       #aaf2bd;
+  --md-on-success-container:    #00210f;
+  --md-warning:                 #7a5900;
+  --md-warning-container:       #ffdf9e;
+  --md-on-warning-container:    #261a00;
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------
+   2) ベース
+   --------------------------------------------------------------------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
 html, body {
-  margin: 0; height: 100%; background: var(--bg); color: var(--fg);
-  font-family: "Yu Gothic UI", "Noto Sans CJK JP", system-ui, sans-serif;
-  user-select: none; overflow: hidden;
+  margin: 0;
+  height: 100%;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  font-family: "Yu Gothic UI", "Noto Sans CJK JP", "Noto Sans JP", system-ui, sans-serif;
+  user-select: none;
+  overflow: hidden;
 }
+
 #app { height: 100vh; display: flex; }
+
 .screen {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; text-align: center; padding: 24px; gap: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  gap: 16px;
+  overflow: hidden;
 }
-h1 { font-size: 34px; margin: 0; }
-.big { font-size: 48px; font-weight: 800; margin: 0; }
-.h2 { font-size: 28px; font-weight: 800; margin: 0; }
-.body { font-size: 22px; margin: 0; }
-.muted { color: var(--muted); }
-.ok { color: var(--ok); } .warn { color: var(--warn); } .danger { color: var(--danger); }
-.accent { color: var(--accent); }
 
+/* 管理画面など、縦に長い内容はスクロールできる左寄せレイアウトにする */
+.screen.admin {
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------
+   3) タイポグラフィ（MD3 タイプスケール / キオスク向けに大きめ）
+   --------------------------------------------------------------------- */
+.display  { font-size: 56px; line-height: 1.1;  font-weight: 800; margin: 0; letter-spacing: -0.5px; }
+.headline { font-size: 40px; line-height: 1.15; font-weight: 700; margin: 0; }
+.title    { font-size: 28px; line-height: 1.25; font-weight: 700; margin: 0; }
+.body     { font-size: 22px; line-height: 1.4;  font-weight: 400; margin: 0; }
+.label    { font-size: 16px; line-height: 1.3;  font-weight: 600; margin: 0; letter-spacing: 0.3px; }
+
+/* 旧クラスの互換（app.js の既存マークアップ用） */
+h1        { font-size: 40px; line-height: 1.15; font-weight: 700; margin: 0; }
+.big      { font-size: 56px; line-height: 1.1;  font-weight: 800; margin: 0; }
+.h2       { font-size: 28px; line-height: 1.3;  font-weight: 700; margin: 0; }
+
+.muted   { color: var(--md-on-surface-variant); }
+.accent  { color: var(--md-primary); }
+.ok      { color: var(--md-success); }
+.warn    { color: var(--md-warning); }
+.danger  { color: var(--md-error); }
+
+/* ---------------------------------------------------------------------
+   4) 部品
+   --------------------------------------------------------------------- */
+
+/* --- ボタン（MD3: filled / tonal / outlined / text）--- */
 button {
-  font-family: inherit; border: 0; border-radius: 14px; color: #fff;
-  background: var(--accent); font-weight: 800; cursor: pointer;
-  padding: 18px 24px; font-size: 26px; min-width: 150px;
+  position: relative;
+  overflow: hidden;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 0 32px;
+  min-height: 64px;           /* 主要タッチターゲット >= 64px */
+  min-width: 160px;
+  transition: box-shadow .12s ease, transform .04s ease;
+  touch-action: manipulation;
 }
-button:active { transform: translateY(1px); }
-button.sub { background: var(--card); }
-button.ok { background: var(--ok); } button.warn { background: var(--warn); font-size:16px; min-width:0; padding:8px 14px;}
-button.small { font-size: 16px; padding: 8px 14px; min-width: 0; }
+/* 状態レイヤ（hover/pressed のオーバーレイ） */
+button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity .1s ease;
+  pointer-events: none;
+}
+button:hover::after  { opacity: var(--state-hover); }
+button:active::after { opacity: var(--state-press); }
+button:active        { transform: translateY(1px); }
+button:focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }
 
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-.card { background: var(--card); border-radius: 16px; padding: 20px; width: min(680px, 92%); }
+/* トーナル（副次操作） */
+button.tonal, button.sub {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+/* アウトライン */
+button.outlined {
+  background: transparent;
+  color: var(--md-primary);
+  border: 1.5px solid var(--md-outline);
+}
+/* テキスト（キャンセル等の最小操作） */
+button.text {
+  background: transparent;
+  color: var(--md-primary);
+  min-width: 0;
+  padding: 0 20px;
+}
+/* 肯定（返却する等）: 緑系コンテナ */
+button.ok {
+  background: var(--md-success-container);
+  color: var(--md-on-success-container);
+}
+/* 注意/危険（無効化など） */
+button.warn {
+  background: var(--md-error-container);
+  color: var(--md-on-error-container);
+}
 
-.field { display: flex; align-items: center; gap: 10px; margin: 8px 0; justify-content: center; }
-.field label { width: 150px; text-align: right; color: var(--muted); font-size: 18px; }
-.field input { font-size: 20px; padding: 8px 10px; border-radius: 8px; border: 1px solid #334155;
-  background: #0b1220; color: var(--fg); width: 240px; }
-.mlist { width: min(680px, 92%); max-height: 34vh; overflow-y: auto; margin-top: 8px; }
-.mlist .item { display: flex; align-items: center; justify-content: space-between;
-  padding: 6px 4px; border-bottom: 1px solid #243046; font-size: 16px; }
-.toast { min-height: 26px; font-size: 18px; }
+/* 小さいボタン（一覧の行内操作）。タッチは 48px 以上を確保 */
+button.small {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 16px;
+  min-height: 48px;
+  min-width: 0;
+}
 
-#devbar { position: fixed; bottom: 0; left: 0; right: 0; background: #111827;
-  display: flex; gap: 6px; align-items: center; padding: 6px 10px; flex-wrap: wrap; }
-#devbar input { font-size: 14px; padding: 4px 6px; border-radius: 6px; border: 1px solid #334155;
-  background: #0b1220; color: var(--fg); }
-#devbar button { font-size: 14px; padding: 4px 10px; min-width: 0; }
-#devbar .tag { color: #9ca3af; font-size: 13px; }
+/* --- レイアウト補助 --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: min(980px, 94%);
+}
+.grid button { min-height: 96px; font-size: 28px; }
+.grid button small { display: block; font-size: 17px; font-weight: 500; opacity: .85; margin-top: 4px; }
+
+.row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+/* --- カード（surface-container）--- */
+.card {
+  background: var(--md-surface-container-high);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: min(680px, 94%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+/* --- 入力欄（MD3 outlined text field 風）--- */
+.field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 8px 0;
+}
+.field label {
+  width: 140px;
+  flex: 0 0 140px;
+  text-align: right;
+  color: var(--md-on-surface-variant);
+  font-size: 18px;
+  font-weight: 600;
+}
+.field > span {
+  font-size: 20px;
+  color: var(--md-on-surface);
+}
+input, select {
+  font-family: inherit;
+  font-size: 20px;
+  padding: 12px 16px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--md-outline);
+  background: var(--md-surface-container-lowest);
+  color: var(--md-on-surface);
+  min-height: 52px;
+  width: 260px;
+  flex: 1 1 auto;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--md-primary);
+  border-width: 2px;
+}
+select { cursor: pointer; }
+
+/* --- リスト（メンバー/物品管理）--- */
+.mlist {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mlist .item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  min-height: 64px;
+}
+.mlist .item input { font-size: 16px; min-height: 48px; padding: 8px 12px; width: 140px; flex: 0 1 140px; }
+.mlist .item > .state { color: var(--md-on-surface-variant); font-weight: 600; min-width: 110px; }
+
+/* --- トースト（操作結果メッセージ）--- */
+.toast {
+  min-height: 28px;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 4px 0 0;
+}
+.toast.ok     { color: var(--md-success); }
+.toast.danger { color: var(--md-error); }
+
+/* --- ステータスチップ（attract/standby の物品状況）--- */
+.statuslist {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(720px, 94%);
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+.status .ico { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; }
+.status .ico svg { width: 36px; height: 36px; display: block; }
+.status .txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.status .st-head { font-size: 28px; font-weight: 800; line-height: 1.2; }
+.status .st-sub  { font-size: 18px; line-height: 1.35; }
+
+.status.available { background: var(--md-success-container); color: var(--md-on-success-container); }
+.status.borrowed  { background: var(--md-warning-container); color: var(--md-on-warning-container); }
+.status.overdue   { background: var(--md-error-container);   color: var(--md-on-error-container); }
+
+/* 遠目に状態が分かる単一物品の大表示 */
+.hero-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.hero-ico svg { width: 72px; height: 72px; display: block; }
+.hero-status.available { color: var(--md-success); }
+.hero-status.borrowed  { color: var(--md-warning); }
+.hero-status.overdue   { color: var(--md-error); }
+
+/* タッチ促し */
+.hint {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--md-primary);
+}
+.hint .ico svg { width: 30px; height: 30px; display: block; }
+
+/* 画面見出し（カード系の上部） */
+.pulse { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* --- 管理画面のアプリバー --- */
+.appbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--md-surface-container-low);
+  border-bottom: 1px solid var(--md-outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.appbar .bar-title { flex: 1; font-size: 26px; font-weight: 700; }
+.appbar .bar-sub { font-size: 18px; color: var(--md-on-surface-variant); font-weight: 500; }
+.admin-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+.admin-body .card,
+.admin-body .mlist,
+.admin-body .toast,
+.admin-body .section-label { width: min(900px, 96%); }
+.section-label { font-size: 20px; font-weight: 700; color: var(--md-on-surface-variant); margin-top: 8px; }
+
+/* 解錠中（扉が開いています）を最大限目立たせる */
+.unlock-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 36px 48px;
+  border-radius: var(--radius-lg);
+  background: var(--md-success-container);
+  color: var(--md-on-success-container);
+  width: min(760px, 94%);
+}
+.unlock-banner .unlock-ico svg { width: 88px; height: 88px; display: block; }
+
+/* ---------------------------------------------------------------------
+   6) devbar（開発用・モック時のみ。新デザインと衝突しない簡素な見た目）
+   --------------------------------------------------------------------- */
+#devbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--md-surface-container-highest);
+  border-top: 1px solid var(--md-outline-variant);
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 12px; flex-wrap: wrap;
+  z-index: 10;
+}
+#devbar .tag { color: var(--md-on-surface-variant); font-size: 13px; font-weight: 600; }
+#devbar input {
+  font-size: 14px; padding: 6px 10px; min-height: 0; width: 140px;
+  border-radius: var(--radius-xs); border: 1px solid var(--md-outline);
+  background: var(--md-surface-container-lowest); color: var(--md-on-surface);
+}
+#devbar button {
+  font-size: 14px; font-weight: 600; padding: 6px 14px;
+  min-height: 0; min-width: 0; border-radius: var(--radius-full);
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container);
+}

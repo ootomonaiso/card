@@ -67,6 +67,33 @@ class MemberRepository:
         )
         self.conn.commit()
 
+    def set_role(self, member_id: int, role: str) -> None:
+        self.conn.execute(
+            "UPDATE MEMBER SET role = ? WHERE member_id = ?", (role, member_id)
+        )
+        self.conn.commit()
+
+    def update_profile(self, member_id: int, name: str, employee_no: str) -> None:
+        self.conn.execute(
+            "UPDATE MEMBER SET name = ?, employee_no = ? WHERE member_id = ?",
+            (name, employee_no, member_id),
+        )
+        self.conn.commit()
+
+    def set_idm(self, member_id: int, card_idm: str) -> None:
+        """カード再発行：登録済みメンバーの card_idm を付け替える。"""
+        self.conn.execute(
+            "UPDATE MEMBER SET card_idm = ? WHERE member_id = ?", (card_idm, member_id)
+        )
+        self.conn.commit()
+
+    def count_active_admins(self) -> int:
+        """有効な管理者（role='admin' かつ is_active=1）の人数（鶏卵問題対策）。"""
+        row = self.conn.execute(
+            "SELECT COUNT(*) AS c FROM MEMBER WHERE role = 'admin' AND is_active = 1"
+        ).fetchone()
+        return int(row["c"])
+
     def delete(self, member_id: int) -> None:
         self.conn.execute("DELETE FROM MEMBER WHERE member_id = ?", (member_id,))
         self.conn.commit()

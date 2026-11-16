@@ -15,11 +15,12 @@ class CsvTest(unittest.TestCase):
     def setUp(self):
         self.ctx = make_ctx(FixedClock(datetime(2026, 11, 8, 9, 30, 0)))
         self.clock = self.ctx.clock
+        self.item_id = self.ctx.item_repo.default_item().item_id
         self.taro = self.ctx.members.register("AA11", "100234", "山田 太郎", "user")
 
     def test_csv_export(self):
         # FR-07：帳票同項目・書式でCSV出力
-        loan = self.ctx.loans.borrow(self.taro, 60)
+        loan = self.ctx.loans.borrow(self.taro, self.item_id, 60)
         self.clock.set(datetime(2026, 11, 8, 10, 12, 0))
         self.ctx.loans.return_loan(loan)
         with tempfile.TemporaryDirectory() as d:
@@ -43,15 +44,26 @@ class CsvTest(unittest.TestCase):
     def test_csv_injection_neutralized(self):
         # 氏名が数式開始文字なら ' を前置して無害化する（CSVインジェクション対策）
         evil = self.ctx.members.register("CC33", "100888", "=cmd|'/c calc'!A1", "user")
-        self.ctx.loans.borrow(evil, 60)
+        self.ctx.loans.borrow(evil, self.item_id, 60)
         rows = self.ctx.reports.build_rows(
             datetime(2026, 11, 1).date(), datetime(2026, 11, 30).date()
         )
         self.assertTrue(rows[0][0].startswith("'="))
 
+    def test_csv_has_distinct_item_names(self):
+        # 複数物品でも、各行に正しい物品名が出る（物品名列 = index 2）
+        item2 = self.ctx.item_svc.add_item("予備カメラ", "保管庫B")
+        self.ctx.loans.borrow(self.taro, self.item_id, 60)
+        self.ctx.loans.borrow(self.taro, item2, 30)
+        rows = self.ctx.reports.build_rows(
+            datetime(2026, 11, 1).date(), datetime(2026, 11, 30).date()
+        )
+        names = {r[2] for r in rows}
+        self.assertEqual(names, {"セキュアカメラ", "予備カメラ"})
+
     def test_csv_excludes_out_of_range(self):
         # 期間外の貸出は出力されない
-        self.ctx.loans.borrow(self.taro, 60)
+        self.ctx.loans.borrow(self.taro, self.item_id, 60)
         with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "log.csv"
             n = self.ctx.reports.export_csv(

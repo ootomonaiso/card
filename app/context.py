@@ -16,6 +16,7 @@ from app.repository.loans import LoanRepository
 from app.repository.members import MemberRepository
 from app.services.auth import AuthService
 from app.services.clock import Clock
+from app.services.item import ItemService
 from app.services.loan import LoanService
 from app.services.member import MemberService
 from app.services.report import ReportService
@@ -48,6 +49,7 @@ class AppContext:
             cfg, self.clock, self.member_repo, self.item_repo, self.loan_repo, self.lock
         )
         self.members = MemberService(self.clock, self.member_repo)
+        self.item_svc = ItemService(self.item_repo, self.loan_repo)
         self.reports = ReportService(cfg, self.member_repo, self.item_repo, self.loan_repo)
 
     @classmethod

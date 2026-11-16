@@ -1,6 +1,8 @@
 "use strict";
 // SSE で受けたサーバ状態を描画するだけの薄いクライアント。
 // 操作は POST /api/action。画面遷移の判断はすべてサーバ側。
+// 見た目は Material Design 3（style.css のトークン）に沿う。送る action 名・
+// payload の読み方は従来どおりで、ここでは描画マークアップのみを MD3 化している。
 
 const appEl = document.getElementById("app");
 const el = (t, props = {}, kids = []) => {
@@ -15,6 +17,16 @@ const el = (t, props = {}, kids = []) => {
   return n;
 };
 
+// インラインSVGアイコン（外部フォント/画像は使わない方針）。
+const ICON = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 9v5"/><path d="M12 17.5h.01"/></svg>',
+  unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>',
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',
+};
+const icon = (name, cls = "") => el("span", { class: cls, html: ICON[name] || "" });
+
 async function action(type, extra = {}) {
   const res = await fetch("/api/action", {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -25,59 +37,150 @@ async function action(type, extra = {}) {
 
 // メンバー登録フォームの下書き（カードタッチでの再描画時に入力を保持）
 const draft = { name: "", employee_no: "", role: "user" };
+// 初期管理者登録フォームの下書き（setup画面・再タッチでの再描画時に入力を保持）
+const setupDraft = { name: "", employee_no: "" };
+// 物品追加フォームの下書き（物品管理画面の再描画時に入力を保持）
+const itemDraft = { name: "", location: "" };
 
-function screenWrap(children) {
-  appEl.replaceChildren(el("div", { class: "screen" }, children));
+function screenWrap(children, extraClass = "") {
+  appEl.replaceChildren(el("div", { class: extraClass ? `screen ${extraClass}` : "screen" }, children));
+}
+
+// 管理画面の共通シェル（アプリバー + スクロール本文）。トーンをキオスクと揃える。
+function adminWrap(title, backAction, bodyKids, sub) {
+  const bar = el("div", { class: "appbar" }, [
+    el("button", { class: "text", onclick: () => action(backAction), html: "← 戻る" }),
+    el("div", { class: "bar-title" }, [
+      el("span", { html: title }),
+      sub ? el("div", { class: "bar-sub", html: sub }) : null,
+    ]),
+  ]);
+  const body = el("div", { class: "admin-body" }, bodyKids);
+  appEl.replaceChildren(el("div", { class: "screen admin" }, [bar, body]));
+}
+
+// 物品1件ぶんの状況を MD3 ステータスチップにする（待受の一覧表示で使う）。
+function itemStatusChip(it) {
+  let kind, ico, head;
+  if (!it.is_lent) { kind = "available"; ico = "check"; head = `${it.name}：貸出できます`; }
+  else if (it.is_overdue) { kind = "overdue"; ico = "alert"; head = `延滞中：${it.name}`; }
+  else { kind = "borrowed"; ico = "clock"; head = `貸出中：${it.name}`; }
+  const sub = [];
+  if (it.is_lent) {
+    if (it.borrower_name) sub.push(`利用者 ${it.borrower_name}`);
+    if (it.due_at) sub.push(`返却予定 ${it.due_at}`);
+  }
+  return el("div", { class: `status ${kind}` }, [
+    icon(ico, "ico"),
+    el("div", { class: "txt" }, [
+      el("div", { class: "st-head", html: head }),
+      sub.length ? el("div", { class: "st-sub", html: sub.join("　/　") }) : null,
+    ]),
+  ]);
+}
+
+// 単一物品向けの大きな状況表示（遠目でも状態が分かる）。
+function heroStatus(it) {
+  let kind, ico, head;
+  if (!it.is_lent) { kind = "available"; ico = "check"; head = "貸出できます"; }
+  else if (it.is_overdue) { kind = "overdue"; ico = "alert"; head = "延滞中（返却待ち）"; }
+  else { kind = "borrowed"; ico = "clock"; head = "貸出中（返却待ち）"; }
+  const sub = [];
+  if (it.is_lent) {
+    if (it.borrower_name) sub.push(`利用者: ${it.borrower_name}`);
+    if (it.due_at) sub.push(`返却予定: ${it.due_at}`);
+  }
+  return el("div", { class: `hero-status ${kind}` }, [
+    icon(ico, "hero-ico"),
+    el("p", { class: "display", html: head }),
+    sub.length ? el("p", { class: "body muted", html: sub.join("　/　") }) : null,
+  ]);
+}
+
+function homeContent(items, withHint) {
+  const kids = [];
+  const title = items.length === 1 ? `${items[0].name} 貸出` : "物品 貸出";
+  kids.push(el("h1", { class: "headline", html: title }));
+  if (items.length === 1) {
+    kids.push(heroStatus(items[0]));
+  } else if (items.length > 1) {
+    kids.push(el("div", { class: "statuslist" }, items.map(itemStatusChip)));
+  }
+  if (withHint) kids.push(withHint);
+  return kids;
 }
 
 const RENDER = {
   // 要タッチ設定時の待受。画面のどこを触っても開始（standbyへ）
   attract(d) {
-    const kids = [el("h1", { html: `${d.item_name || "物品"} 貸出` })];
-    if (d.is_lent) {
-      const cls = d.is_overdue ? "h2 danger" : "h2 warn";
-      kids.push(el("p", { class: cls, html: d.is_overdue ? "▲ 延滞中" : "▲ 貸出中" }));
-      if (d.due_at) kids.push(el("p", { class: "body muted", html: `返却予定: ${d.due_at}` }));
-    } else {
-      kids.push(el("p", { class: "h2 ok", html: "● 貸出できます" }));
-    }
-    kids.push(el("p", { class: "big accent", html: "画面にタッチしてはじめる" }));
-    const scr = el("div", { class: "screen", onclick: () => action("start") }, kids);
+    const items = d.items || [];
+    const hint = el("p", { class: "hint pulse", html: "画面にタッチしてはじめる" });
+    const scr = el("div", { class: "screen", onclick: () => action("start") }, homeContent(items, hint));
     scr.style.cursor = "pointer";
     appEl.replaceChildren(scr);
   },
 
   standby(d) {
-    const kids = [el("h1", { html: `${d.item_name || "物品"} 貸出` })];
-    if (!d.is_lent) {
-      kids.push(el("p", { class: "h2 ok", html: "● 貸出できます" }));
-    } else {
-      const cls = d.is_overdue ? "h2 danger" : "h2 warn";
-      kids.push(el("p", { class: cls, html: d.is_overdue ? "▲ 延滞中（返却待ち）" : "▲ 貸出中（返却待ち）" }));
-      const lines = [];
-      if (d.borrower_name) lines.push(`利用者: ${d.borrower_name}`);
-      if (d.due_at) lines.push(`返却予定: ${d.due_at}`);
-      kids.push(el("p", { class: "body muted", html: lines.join("　/　") }));
-    }
-    kids.push(el("p", { class: "h2 accent", html: "社員証をタッチしてください" }));
-    screenWrap(kids);
+    const items = d.items || [];
+    const hint = el("p", { class: "hint" }, [icon("card", "ico"), el("span", { html: "　社員証をタッチしてください" })]);
+    hint.style.display = "inline-flex";
+    hint.style.alignItems = "center";
+    screenWrap(homeContent(items, hint));
+  },
+
+  // 空き物品が複数あるときの物品選択（貸出）
+  borrow_item(d) {
+    const grid = el("div", { class: "grid" }, (d.items || []).map(it =>
+      el("button", {
+        class: "tonal",
+        onclick: () => action("choose_item", { item_id: it.item_id }),
+        html: it.location ? `${it.name}<br><small>${it.location}</small>` : it.name,
+      })));
+    screenWrap([
+      el("p", { class: "title", html: "借りる物品を選んでください" }),
+      grid,
+      el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
+    ]);
+  },
+
+  // 本人の未返却が複数あるときの返却物品選択
+  return_select(d) {
+    const list = el("div", { class: "grid" }, (d.loans || []).map(ln =>
+      el("button", {
+        class: "tonal",
+        onclick: () => action("choose_return", { loan_id: ln.loan_id }),
+        html: `${ln.item_name}<br><small>返却予定: ${ln.due_at}</small>`,
+      })));
+    screenWrap([
+      el("p", { class: "title", html: "返却する物品を選んでください" }),
+      list,
+      el("div", { class: "row" }, [
+        el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }),
+        el("button", { class: "text", onclick: () => action("cancel"), html: "やめる" }),
+      ]),
+    ]);
   },
 
   borrow_time(d) {
     const grid = el("div", { class: "grid" },
-      d.choices.map(c => el("button", { onclick: () => action("choose_duration", { minutes: c.min }), html: c.label })));
+      d.choices.map(c => el("button", { class: "tonal", onclick: () => action("choose_duration", { minutes: c.min }), html: c.label })));
     screenWrap([
-      el("p", { class: "h2", html: "貸出時間を選んでください" }),
+      el("p", { class: "title", html: d.item_name ? `${d.item_name} の貸出時間を選んでください` : "貸出時間を選んでください" }),
       grid,
-      el("button", { class: "sub", onclick: () => action("cancel"), html: "キャンセル" }),
+      el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
     ]);
   },
 
   unlock(d) {
     const msg = d.mode === "borrow" ? "鍵を取り出し、扉を閉めてください" : "鍵を戻し、扉を閉めてください";
     screenWrap([
-      el("p", { class: "big ok", html: "🔓 解錠しました" }),
-      el("p", { class: "h2", html: msg }),
+      el("div", { class: "unlock-banner" }, [
+        icon("unlock", "unlock-ico"),
+        el("p", { class: "display", html: "解錠しました" }),
+        el("p", { class: "title", html: "扉が開いています" }),
+      ]),
+      d.item_name ? el("p", { class: "title", html: d.item_name }) : null,
+      el("p", { class: "body", html: msg }),
       d.due_at ? el("p", { class: "body muted", html: `返却予定: ${d.due_at}` }) : null,
       el("p", { class: "body muted", html: "（数秒後に待機画面へ戻ります）" }),
     ]);
@@ -85,40 +188,126 @@ const RENDER = {
 
   return_confirm(d) {
     screenWrap([
-      el("p", { class: "big", html: "返却しますか？" }),
-      el("p", { class: "body", html: `貸出日時: ${d.borrowed_at}<br>返却予定: ${d.due_at}` }),
+      el("p", { class: "display", html: "返却しますか？" }),
+      d.item_name ? el("p", { class: "title", html: d.item_name }) : null,
+      el("p", { class: "body muted", html: `貸出日時: ${d.borrowed_at}<br>返却予定: ${d.due_at}` }),
       el("div", { class: "row" }, [
         el("button", { class: "ok", onclick: () => action("confirm_return"), html: "返却する" }),
-        el("button", { class: "sub", onclick: () => action("cancel"), html: "やめる" }),
+        el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }),
+        el("button", { class: "text", onclick: () => action("cancel"), html: "やめる" }),
       ]),
     ]);
   },
 
   error(d) {
     screenWrap([
-      el("p", { class: "big danger", html: "✕ エラー" }),
-      el("p", { class: "h2", html: d.reason || "" }),
+      icon("alert", "hero-ico danger"),
+      el("p", { class: "display danger", html: "エラー" }),
+      el("p", { class: "title", html: d.reason || "" }),
       el("p", { class: "body muted", html: "数秒後に待機画面へ戻ります" }),
     ]);
   },
 
+  // 有効な管理者が1人もいないときだけ出る、初期管理者登録画面
+  setup(d) {
+    const name = el("input", { value: setupDraft.name, oninput: e => setupDraft.name = e.target.value });
+    const emp = el("input", { value: setupDraft.employee_no, oninput: e => setupDraft.employee_no = e.target.value });
+    const toast = el("p", { class: "toast muted" });
+    const save = async () => {
+      const r = await action("register_initial_admin", { name: name.value, employee_no: emp.value });
+      toast.className = "toast " + (r.ok ? "ok" : "danger");
+      toast.innerHTML = r.message || "";
+      if (r.ok) { setupDraft.name = ""; setupDraft.employee_no = ""; }
+    };
+    screenWrap([
+      el("p", { class: "headline", html: "初期管理者登録" }),
+      el("p", { class: "body muted", html: "管理者が未登録のため、最初の管理者を登録してください" }),
+      el("div", { class: "card" }, [
+        el("div", { class: "field" }, [el("label", { html: "IDm" }),
+          el("span", { html: d.idm || "（社員証をタッチ）", class: d.idm ? "" : "muted" })]),
+        el("div", { class: "field" }, [el("label", { html: "氏名" }), name]),
+        el("div", { class: "field" }, [el("label", { html: "社員番号" }), emp]),
+        el("button", { class: "small", onclick: save, html: "管理者として登録" }),
+        toast,
+      ]),
+      el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
+    ]);
+  },
+
   admin_menu(d) {
-    const kids = [
-      el("p", { class: "big", html: "管理メニュー" }),
-      el("p", { class: "body muted", html: d.admin_name ? `管理者: ${d.admin_name}` : "" }),
-    ];
+    const kids = [];
     // 管理者自身が借りている物品があれば、ここから返却できる
     if (d.can_return) {
-      const due = d.return_due_at ? `（返却予定: ${d.return_due_at}）` : "";
-      kids.push(el("button", { class: "ok", onclick: () => action("admin_return"), html: `返却する${due}` }));
+      const cnt = d.return_count && d.return_count > 1 ? `（${d.return_count}件）` : "";
+      kids.push(el("button", { class: "ok", onclick: () => action("admin_return"), html: `返却する${cnt}` }));
     }
     kids.push(
-      el("button", { onclick: () => action("open_member_admin"), html: "メンバー管理" }),
-      el("button", { onclick: () => action("open_report"), html: "ログ出力（CSV）" }),
-      el("button", { onclick: () => action("admin_self_borrow"), html: "自分で借りる" }),
-      el("button", { class: "sub", onclick: () => action("cancel"), html: "終了（待機へ）" }),
+      el("button", { class: "tonal", onclick: () => action("open_member_admin"), html: "メンバー管理" }),
+      el("button", { class: "tonal", onclick: () => action("open_item_admin"), html: "物品管理" }),
+      el("button", { class: "tonal", onclick: () => action("open_report"), html: "ログ出力（CSV）" }),
+      el("button", { class: "tonal", onclick: () => action("admin_self_borrow"), html: "自分で借りる" }),
+      el("button", { class: "text", onclick: () => action("cancel"), html: "終了（待機へ）" }),
     );
-    screenWrap(kids);
+    const menu = el("div", { class: "row", }, kids);
+    menu.style.flexDirection = "column";
+    menu.style.width = "min(520px, 90%)";
+    for (const b of kids) b.style.width = "100%";
+    screenWrap([
+      el("p", { class: "headline", html: "管理メニュー" }),
+      el("p", { class: "body muted", html: d.admin_name ? `管理者: ${d.admin_name}` : "" }),
+      menu,
+    ]);
+  },
+
+  item_admin(d) {
+    const name = el("input", { value: itemDraft.name, oninput: e => itemDraft.name = e.target.value });
+    const loc = el("input", { value: itemDraft.location, oninput: e => itemDraft.location = e.target.value });
+    const toast = el("p", { class: "toast muted" });
+    const add = async () => {
+      const r = await action("add_item", { name: name.value, location: loc.value });
+      toast.className = "toast " + (r.ok ? "ok" : "danger");
+      toast.innerHTML = r.message || "";
+      if (r.ok) { itemDraft.name = ""; itemDraft.location = ""; }
+    };
+    const card = el("div", { class: "card" }, [
+      el("div", { class: "field" }, [el("label", { html: "物品名" }), name]),
+      el("div", { class: "field" }, [el("label", { html: "保管場所" }), loc]),
+      el("button", { class: "small", onclick: add, html: "物品を追加" }),
+      toast,
+    ]);
+
+    const listToast = el("p", { class: "toast muted" });
+    const showListResult = (r) => {
+      listToast.className = "toast " + (r.ok ? "ok" : "danger");
+      listToast.innerHTML = r.message || "";
+    };
+
+    const list = el("div", { class: "mlist" }, (d.items || []).map(it => {
+      const editName = el("input", { value: it.name, size: 10 });
+      const editLoc = el("input", { value: it.location, size: 10 });
+      const editSave = () => action("update_item", {
+        item_id: it.item_id, name: editName.value, location: editLoc.value,
+      }).then(showListResult);
+
+      const activeBtn = it.is_active
+        ? el("button", { class: "warn small", onclick: () => action("set_item_active", { item_id: it.item_id, active: false }).then(showListResult), html: "無効化" })
+        : el("button", { class: "ok small", onclick: () => action("set_item_active", { item_id: it.item_id, active: true }).then(showListResult), html: "有効化" });
+
+      const state = `${it.is_active ? "有効" : "無効"}${it.is_lent ? " / 貸出中" : ""}`;
+      return el("div", { class: "item" }, [
+        el("span", { html: state, class: "state" }),
+        editName, editLoc,
+        el("button", { class: "tonal small", onclick: editSave, html: "保存" }),
+        activeBtn,
+      ]);
+    }));
+
+    adminWrap("物品管理", "admin_menu", [
+      el("div", { class: "section-label", html: "物品を追加" }),
+      card, listToast,
+      el("div", { class: "section-label", html: "登録済み物品" }),
+      list,
+    ]);
   },
 
   member_admin(d) {
@@ -142,21 +331,52 @@ const RENDER = {
       el("div", { class: "field" }, [el("label", { html: "氏名" }), name]),
       el("div", { class: "field" }, [el("label", { html: "社員番号" }), emp]),
       el("div", { class: "field" }, [el("label", { html: "ロール" }), roleSel]),
-      el("button", { class: "ok small", onclick: save, html: "保存" }),
+      el("button", { class: "small", onclick: save, html: "保存" }),
       toast,
     ]);
 
+    const listToast = el("p", { class: "toast muted", html: d.reissue_message || "" });
+    const showListResult = (r) => {
+      listToast.className = "toast " + (r.ok ? "ok" : "danger");
+      listToast.innerHTML = r.message || "";
+    };
+
     const list = el("div", { class: "mlist" }, d.members.map(m => {
-      const label = `${m.name}（${m.employee_no} / ${m.role} / ${m.is_active ? "有効" : "無効"}）`;
-      const btn = m.is_active
-        ? el("button", { class: "warn", onclick: () => action("set_member_active", { member_id: m.member_id, active: false }), html: "無効化" })
-        : el("button", { class: "ok small", onclick: () => action("set_member_active", { member_id: m.member_id, active: true }), html: "有効化" });
-      return el("div", { class: "item" }, [el("span", { html: label, class: m.is_active ? "" : "muted" }), btn]);
+      const editName = el("input", { value: m.name, size: 8 });
+      const editEmp = el("input", { value: m.employee_no, size: 8 });
+      const editSave = () => action("update_member", {
+        member_id: m.member_id, name: editName.value, employee_no: editEmp.value,
+      }).then(showListResult);
+
+      const activeBtn = m.is_active
+        ? el("button", { class: "warn small", onclick: () => action("set_member_active", { member_id: m.member_id, active: false }).then(showListResult), html: "無効化" })
+        : el("button", { class: "ok small", onclick: () => action("set_member_active", { member_id: m.member_id, active: true }).then(showListResult), html: "有効化" });
+
+      const roleBtn = el("button", {
+        class: "tonal small",
+        onclick: () => action("set_member_role", {
+          member_id: m.member_id, role: m.role === "admin" ? "user" : "admin",
+        }).then(showListResult),
+        html: m.role === "admin" ? "一般へ変更" : "管理者へ変更",
+      });
+
+      const reissueBtn = d.reissue_target_id === m.member_id
+        ? el("button", { class: "warn small", onclick: () => action("cancel_card_reissue"), html: "カード待ち中（キャンセル）" })
+        : el("button", { class: "tonal small", onclick: () => action("start_card_reissue", { member_id: m.member_id }), html: "カード再発行" });
+
+      return el("div", { class: "item" }, [
+        el("span", { html: `${m.role} / ${m.is_active ? "有効" : "無効"}`, class: "state" }),
+        editName, editEmp,
+        el("button", { class: "tonal small", onclick: editSave, html: "保存" }),
+        roleBtn, activeBtn, reissueBtn,
+      ]);
     }));
 
-    screenWrap([
-      el("p", { class: "h2", html: "メンバー管理" }), card, list,
-      el("button", { class: "sub small", onclick: () => action("admin_menu"), html: "戻る" }),
+    adminWrap("メンバー管理", "admin_menu", [
+      el("div", { class: "section-label", html: "メンバーを登録" }),
+      card, listToast,
+      el("div", { class: "section-label", html: "登録済みメンバー" }),
+      list,
     ]);
   },
 
@@ -170,16 +390,14 @@ const RENDER = {
       toast.className = "toast " + (r.ok ? "ok" : "danger");
       toast.innerHTML = r.message || "";
     };
-    screenWrap([
-      el("p", { class: "h2", html: "ログ出力（CSV）" }),
+    adminWrap("ログ出力（CSV）", "admin_menu", [
       el("div", { class: "card" }, [
         el("div", { class: "field" }, [el("label", { html: "開始日" }), start]),
         el("div", { class: "field" }, [el("label", { html: "終了日" }), end]),
         el("div", { class: "field" }, [el("label", { html: "出力先" }), path]),
-        el("button", { class: "ok small", onclick: run, html: "CSVを書き出す" }),
+        el("button", { class: "small", onclick: run, html: "CSVを書き出す" }),
         toast,
       ]),
-      el("button", { class: "sub small", onclick: () => action("admin_menu"), html: "戻る" }),
     ]);
   },
 };

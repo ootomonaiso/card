@@ -9,6 +9,9 @@ from pathlib import Path
 @dataclass
 class Config:
     db_path: str = "lending.sqlite3"
+    # item_name / item_location は「空DBの初回起動時に入れる最初の1件」の初期シード。
+    # 物品マスタの実体は ITEM テーブル（複数物品対応）で、以後の増減は物品管理画面で行う。
+    # 既に物品が登録済みのDBでは、この値は参照されない（後方互換のフォールバック）。
     item_name: str = "セキュアカメラ"
     item_location: str = "保管庫A"
 

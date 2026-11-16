@@ -64,25 +64,73 @@ class LockFailureTest(unittest.TestCase):
     def setUp(self):
         self.ctx = make_ctx()
         self.ctx.loans.lock = MockLock(fail=True)  # 解錠失敗を模擬
+        self.item_id = self.ctx.item_repo.default_item().item_id
         self.taro = self.ctx.members.register("AA11", "100234", "山田 太郎", "user")
+
+    def _is_lent(self) -> bool:
+        return self.ctx.loans.status_list()[0].is_lent
 
     def test_borrow_fails_without_recording(self):
         with self.assertRaises(LoanError):
-            self.ctx.loans.borrow(self.taro, 60)
+            self.ctx.loans.borrow(self.taro, self.item_id, 60)
         # 解錠できなかったので貸出は成立していない
-        self.assertFalse(self.ctx.loans.status().is_lent)
+        self.assertFalse(self._is_lent())
 
     def test_return_fails_keeps_loan_open(self):
         # まず正常に貸出（解錠成功するロックに戻す）
         self.ctx.loans.lock = MockLock()
-        self.ctx.loans.borrow(self.taro, 60)
-        loan = self.ctx.loans.find_returnable_loan(self.taro)
+        self.ctx.loans.borrow(self.taro, self.item_id, 60)
+        loan = self.ctx.loans.find_returnable_loans(self.taro)[0]
         # 返却時に解錠失敗 → 返却扱いにしない
         self.ctx.loans.lock = MockLock(fail=True)
         with self.assertRaises(LoanError):
             self.ctx.loans.return_loan(loan)
-        self.assertTrue(self.ctx.loans.status().is_lent)
+        self.assertTrue(self._is_lent())
 
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class MemberDeleteGuardTest(unittest.TestCase):
+    """物理削除は保守用。貸借ログがあるメンバーは削除できない（NFR-04）。"""
+
+    def setUp(self):
+        self.ctx = make_ctx()
+        self.taro = self.ctx.members.register("AA11", "100234", "山田 太郎", "user")
+
+    def test_delete_without_loans_succeeds(self):
+        self.ctx.members.delete(self.taro.member_id)
+        self.assertIsNone(self.ctx.member_repo.find_by_idm("AA11"))
+
+    def test_delete_with_loans_rejected(self):
+        from app.services.member import MemberError
+        item_id = self.ctx.item_repo.default_item().item_id
+        self.ctx.loans.borrow(self.taro, item_id, 60)
+        with self.assertRaises(MemberError):
+            self.ctx.members.delete(self.taro.member_id)
+        # 無効化は常に可能（通常運用の導線）
+        self.ctx.members.deactivate(self.taro.member_id)
+
+
+class DoubleReturnTest(unittest.TestCase):
+    """既に返却済みのログへの返却操作は、記録を壊さず正常終了する。"""
+
+    def setUp(self):
+        self.ctx = make_ctx()
+        self.taro = self.ctx.members.register("AA11", "100234", "山田 太郎", "user")
+
+    def test_second_return_is_noop(self):
+        item_id = self.ctx.item_repo.default_item().item_id
+        self.ctx.loans.borrow(self.taro, item_id, 60)
+        loan = self.ctx.loans.find_returnable_loans(self.taro)[0]
+        self.ctx.loans.return_loan(loan)
+        first_returned_at = self.ctx.loan_repo.open_loan_for_item(loan.item_id)
+        self.assertIsNone(first_returned_at)  # 返却済み＝貸出中なし
+        self.ctx.clock.advance(minutes=5)
+        self.ctx.loans.return_loan(loan)  # 古い画面状態からの二重返却 → 例外にしない
+        row = self.ctx.conn.execute(
+            "SELECT returned_at FROM LOAN WHERE loan_id = ?", (loan.loan_id,)
+        ).fetchone()
+        # 最初の返却日時が上書きされていないこと
+        self.assertEqual(row["returned_at"], "2026-11-08 09:00:00")

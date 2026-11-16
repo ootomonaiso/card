@@ -171,8 +171,14 @@ class _Handler(BaseHTTPRequestHandler):
             return {"ok": True}
         if action == "start":
             t.start()
+        elif action == "choose_item":
+            t.choose_item(int(body["item_id"]))
         elif action == "choose_duration":
             t.choose_duration(int(body["minutes"]))
+        elif action == "choose_return":
+            t.choose_return(int(body["loan_id"]))
+        elif action == "goto_borrow":
+            t.goto_borrow()
         elif action == "confirm_return":
             t.confirm_return()
         elif action == "admin_return":
@@ -183,15 +189,35 @@ class _Handler(BaseHTTPRequestHandler):
             t.admin_menu()
         elif action == "open_member_admin":
             t.open_member_admin()
+        elif action == "open_item_admin":
+            t.open_item_admin()
         elif action == "open_report":
             t.open_report()
         elif action == "admin_self_borrow":
             t.admin_self_borrow()
+        elif action == "add_item":
+            return t.add_item(body.get("name", ""), body.get("location", ""))
+        elif action == "update_item":
+            return t.update_item(int(body["item_id"]), body.get("name", ""),
+                                 body.get("location", ""))
+        elif action == "set_item_active":
+            return t.set_item_active(int(body["item_id"]), bool(body["active"]))
         elif action == "register_member":
             return t.register_member(body.get("name", ""), body.get("employee_no", ""),
                                      body.get("role", "user"))
+        elif action == "register_initial_admin":
+            return t.register_initial_admin(body.get("name", ""), body.get("employee_no", ""))
         elif action == "set_member_active":
-            t.set_member_active(int(body["member_id"]), bool(body["active"]))
+            return t.set_member_active(int(body["member_id"]), bool(body["active"]))
+        elif action == "set_member_role":
+            return t.set_member_role(int(body["member_id"]), body.get("role", ""))
+        elif action == "update_member":
+            return t.update_member(int(body["member_id"]), body.get("name", ""),
+                                   body.get("employee_no", ""))
+        elif action == "start_card_reissue":
+            t.start_card_reissue(int(body["member_id"]))
+        elif action == "cancel_card_reissue":
+            t.cancel_card_reissue()
         elif action == "export_report":
             return t.export_report(body.get("start", ""), body.get("end", ""),
                                    body.get("path", "lending_log.csv"))

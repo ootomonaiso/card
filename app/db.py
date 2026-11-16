@@ -24,7 +24,12 @@ def connect(db_path: str) -> sqlite3.Connection:
 
 
 def init_db(conn: sqlite3.Connection, item_name: str, item_location: str) -> None:
-    """スキーマを作成し、物品（カメラ1件）が無ければ投入する。"""
+    """スキーマを作成し、ITEM が空のときだけ config の物品を初期シードとして投入する。
+
+    ITEM テーブルが物品マスタの実体（複数物品対応）。config の item_name/item_location は
+    「空DBの初回起動時に入れる最初の1件」と、物品が未登録になった場合のフォールバックに
+    格下げされており、以後の物品の増減は物品管理画面（ItemService）で行う。
+    """
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
     # 起動時にDBの健全性を軽く点検（破損していれば運用ログに警告）。
     row = conn.execute("PRAGMA quick_check").fetchone()
@@ -32,6 +37,7 @@ def init_db(conn: sqlite3.Connection, item_name: str, item_location: str) -> Non
         _log.error("DB整合性チェックに失敗: %s", row[0])
     row = conn.execute("SELECT COUNT(*) AS c FROM ITEM").fetchone()
     if row["c"] == 0:
+        # ITEM が空のときだけ初期物品を1件投入（既存の物品群には触れない）。
         conn.execute(
             "INSERT INTO ITEM(name, location, is_active) VALUES(?, ?, 1)",
             (item_name, item_location),

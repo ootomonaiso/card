@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS LOAN (
 );
 
 CREATE INDEX IF NOT EXISTS idx_loan_active ON LOAN(item_id, returned_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_member_idm ON MEMBER(card_idm);
+-- card_idm の高速照合は列の UNIQUE 制約が作る暗黙インデックスで足りる
+-- （以前の idx_member_idm は重複のため廃止。既存DBに残っていても害はない）。
 
 -- 1つの物品につき未返却（貸出中）は同時に1件まで、をDBレベルで保証する（CON-3）。
 -- アプリ側のチェックが破られても二重貸出を物理的に防ぐ安全網。
