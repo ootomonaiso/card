@@ -24,6 +24,7 @@ const ICON = {
   alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 9v5"/><path d="M12 17.5h.01"/></svg>',
   unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>',
   card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
 };
 const icon = (name, cls = "") => el("span", { class: cls, html: ICON[name] || "" });
 
@@ -53,7 +54,8 @@ function screenWrap(children, extraClass = "") {
 // 管理画面の共通シェル（アプリバー + スクロール本文）。トーンをキオスクと揃える。
 function adminWrap(title, backAction, bodyKids, sub) {
   const bar = el("div", { class: "appbar" }, [
-    el("button", { class: "text", onclick: () => action(backAction), html: "← 戻る" }),
+    el("button", { class: "text back", onclick: () => action(backAction),
+      html: `${ICON.back}<span>戻る</span>` }),
     el("div", { class: "bar-title" }, [
       el("span", { html: title }),
       sub ? el("div", { class: "bar-sub", html: sub }) : null,
@@ -74,7 +76,7 @@ function statusSub(it) {
   const sub = [];
   if (it.is_lent) {
     if (it.borrower_name) sub.push(`利用者: ${it.borrower_name}`);
-    if (it.due_at) sub.push(`返却予定: ${it.due_at}`);
+    if (it.due_at) sub.push(`返却予定: <span class="num">${it.due_at}</span>`);
   }
   return sub;
 }
@@ -159,7 +161,7 @@ const RENDER = {
       el("button", {
         class: "tonal",
         onclick: () => action("choose_return", { loan_id: ln.loan_id }),
-        html: `${ln.item_name}<br><small>返却予定: ${ln.due_at}</small>`,
+        html: `${ln.item_name}<br><small>返却予定: <span class="num">${ln.due_at}</span></small>`,
       })));
     screenWrap([
       el("p", { class: "title", html: "返却する物品を選んでください" }),
@@ -191,7 +193,7 @@ const RENDER = {
       ]),
       d.item_name ? el("p", { class: "title", html: d.item_name }) : null,
       el("p", { class: "body", html: msg }),
-      d.due_at ? el("p", { class: "body muted", html: `返却予定: ${d.due_at}` }) : null,
+      d.due_at ? el("p", { class: "body muted", html: `返却予定: <span class="num">${d.due_at}</span>` }) : null,
       el("p", { class: "body muted", html: "（数秒後に待機画面へ戻ります）" }),
     ]);
   },
@@ -200,7 +202,7 @@ const RENDER = {
     screenWrap([
       el("p", { class: "display", html: "返却しますか？" }),
       d.item_name ? el("p", { class: "title", html: d.item_name }) : null,
-      el("p", { class: "body muted", html: `貸出日時: ${d.borrowed_at}<br>返却予定: ${d.due_at}` }),
+      el("p", { class: "body muted", html: `貸出日時: <span class="num">${d.borrowed_at}</span><br>返却予定: <span class="num">${d.due_at}</span>` }),
       el("div", { class: "row" }, [
         el("button", { class: "ok", onclick: () => action("confirm_return"), html: "返却する" }),
         el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }),
