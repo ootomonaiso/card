@@ -63,7 +63,7 @@
   <polyline points="466,300 490,300 490,318" class="wire"/>
   <polygon points="483,300 491,296 491,304" class="node"/>
   <text x="528" y="352" class="lbl" font-weight="700">Q1  N-ch MOSFET</text>
-  <text x="528" y="368" class="note">ロジックレベル（例: IRLZ44N）</text>
+  <text x="528" y="368" class="note">ロジックレベル・3.3V駆動対応（例: IRLB8721）</text>
   <!-- drain / source terminal letters -->
   <text x="508" y="248" class="note">D</text>
   <text x="508" y="440" class="note">S</text>
@@ -122,5 +122,5 @@
   <text x="24" y="546" class="note">① 施錠は人手。GPIO17 を HIGH で数秒だけ ON にして解錠し、その後必ず OFF へ（連続通電しない：NFR-08）。</text>
   <text x="24" y="566" class="note">② 還流ダイオード D1 は必須。OFF 時にコイルが生む逆起電力（サージ）から Q1 を保護する。</text>
   <text x="24" y="586" class="note">③ ロック用電源は Pi と分離推奨。ただし GND は必ず共通に接続する（基準電位をそろえる）。</text>
-  <text x="24" y="606" class="note">④ LE-53＝DC5V・2W（≈0.4A, タキゲン）。電源は 5V/1A 以上が目安。Q1 は 0.4A 以上のロジックレベル MOSFET（例: IRLZ44N）。</text>
+  <text x="24" y="606" class="note">④ LE-53＝DC5V・2W（≈0.4A, タキゲン）。突入電流が未公表のため電源は 5V/2A 以上を目安。Q1 は 3.3V 駆動対応のロジックレベル MOSFET（例: IRLB8721）。</text>
 </svg>

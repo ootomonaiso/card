@@ -43,7 +43,7 @@
   <!-- peripherals (right) -->
   <rect x="670" y="104" width="200" height="80" class="box"/>
   <text x="770" y="130" text-anchor="middle" class="lbl" font-weight="700">ロック駆動回路</text>
-  <text x="770" y="150" text-anchor="middle" class="sub">MOSFET / リレー方式</text>
+  <text x="770" y="150" text-anchor="middle" class="sub">MOSFET ローサイド方式</text>
   <text x="770" y="170" text-anchor="middle" class="sub">＋ 還流ダイオード</text>
 
   <rect x="670" y="214" width="200" height="56" class="box"/>
