@@ -88,13 +88,22 @@ class Terminal:
         """待受のホーム画面。要タッチ設定なら attract、そうでなければ standby。"""
         return "attract" if self.cfg.require_tap_to_start else "standby"
 
+    def _reset_member_admin_state(self) -> None:
+        """メンバー管理（A02）で使う一時状態をまとめてクリアする。
+
+        取り込み済みIDm・カード再発行待ち・結果メッセージを一括で消す。
+        go_standby と open_member_admin の両方から呼び、クリア漏れを防ぐ。
+        """
+        self._capture_idm = None
+        self._reissue_target = None
+        self._reissue_message = ""
+
     def go_standby(self) -> None:
         """ホーム（待受）へ戻る。設定により attract / standby を選ぶ。"""
         with self._lock:
-            self._admin = self._borrower = self._return_loan = self._capture_idm = None
+            self._admin = self._borrower = self._return_loan = None
             self._borrow_item = None
-            self._reissue_target = None
-            self._reissue_message = ""
+            self._reset_member_admin_state()
             self._goto(self._home_screen(), self._standby_payload())
 
     def start(self) -> None:
@@ -314,6 +323,17 @@ class Terminal:
         self.go_standby()
 
     # ---------------------------------------------------------- 管理（A01〜A03）
+    def _require_admin(self, what: str) -> dict | None:
+        """管理者セッションでなければ監査ログを残し、拒否レスポンスを返す。
+
+        許可なら None。結果を返す管理操作で `denied = self._require_admin(...);
+        if denied: return denied` の形で使い、認可チェックと監査を一箇所に集約する。
+        """
+        if self._admin is None:
+            audit().info("権限なしで%sを試行 → 拒否", what)
+            return {"ok": False, "message": "権限がありません"}
+        return None
+
     def admin_menu(self) -> None:
         with self._lock:
             if self._admin is None:
@@ -346,9 +366,7 @@ class Terminal:
         with self._lock:
             if self._admin is None:
                 return
-            self._capture_idm = None
-            self._reissue_target = None
-            self._reissue_message = ""
+            self._reset_member_admin_state()
             self._goto("member_admin", self._member_admin_payload())
 
     def open_report(self) -> None:
@@ -381,9 +399,9 @@ class Terminal:
 
     def add_item(self, name: str, location: str) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしで物品追加を試行 → 拒否")
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("物品追加")
+            if denied:
+                return denied
             self._reset_idle()
             try:
                 self.ctx.item_svc.add_item(name, location)
@@ -395,9 +413,9 @@ class Terminal:
 
     def update_item(self, item_id: int, name: str, location: str) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしで物品編集を試行 item_id=%s → 拒否", item_id)
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("物品編集")
+            if denied:
+                return denied
             self._reset_idle()
             try:
                 self.ctx.item_svc.update_item(item_id, name, location)
@@ -409,9 +427,9 @@ class Terminal:
 
     def set_item_active(self, item_id: int, active: bool) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしで物品状態変更を試行 item_id=%s → 拒否", item_id)
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("物品状態変更")
+            if denied:
+                return denied
             self._reset_idle()
             try:
                 if active:
@@ -438,9 +456,9 @@ class Terminal:
 
     def register_member(self, name: str, employee_no: str, role: str) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしでメンバー登録を試行 → 拒否")
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("メンバー登録")
+            if denied:
+                return denied
             self._reset_idle()
             try:
                 self.ctx.members.register(self._capture_idm or "", employee_no, name, role)
@@ -473,9 +491,9 @@ class Terminal:
 
     def set_member_active(self, member_id: int, active: bool) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしでメンバー状態変更を試行 member_id=%s → 拒否", member_id)
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("メンバー状態変更")
+            if denied:
+                return denied
             self._reset_idle()
             # ログイン中の管理者自身の無効化は、この場の権限（_adminは認証時のスナップ
             # ショット）がDBと食い違ったまま残るため禁止する。
@@ -494,9 +512,9 @@ class Terminal:
 
     def set_member_role(self, member_id: int, role: str) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしでロール変更を試行 member_id=%s → 拒否", member_id)
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("ロール変更")
+            if denied:
+                return denied
             self._reset_idle()
             # 自分自身をuserへ降格すると、この場の管理者権限（_adminは認証時の
             # スナップショット）がDBと食い違ったまま残るため禁止する。
@@ -512,9 +530,9 @@ class Terminal:
 
     def update_member(self, member_id: int, name: str, employee_no: str) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしでメンバー編集を試行 member_id=%s → 拒否", member_id)
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("メンバー編集")
+            if denied:
+                return denied
             self._reset_idle()
             try:
                 self.ctx.members.update_profile(member_id, name, employee_no)
@@ -550,9 +568,9 @@ class Terminal:
 
     def export_report(self, start_s: str, end_s: str, path: str) -> dict:
         with self._lock:
-            if self._admin is None:
-                audit().info("権限なしでCSV出力を試行 → 拒否")
-                return {"ok": False, "message": "権限がありません"}
+            denied = self._require_admin("CSV出力")
+            if denied:
+                return denied
             self._reset_idle()
             try:
                 start = datetime.strptime(start_s.strip(), "%Y/%m/%d").date()

@@ -21,7 +21,7 @@ class ItemService:
 
     def list_with_status(self) -> list[dict]:
         """全物品を貸出中フラグ付きで返す（物品管理画面向け）。"""
-        open_ids = {ln.item_id for ln in self.loans.list_open()}
+        open_ids = self.loans.open_item_ids()
         return [
             {
                 "item_id": it.item_id,

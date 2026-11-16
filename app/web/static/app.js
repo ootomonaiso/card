@@ -41,6 +41,10 @@ const draft = { name: "", employee_no: "", role: "user" };
 const setupDraft = { name: "", employee_no: "" };
 // 物品追加フォームの下書き（物品管理画面の再描画時に入力を保持）
 const itemDraft = { name: "", location: "" };
+// 一覧の行内編集の下書き。他行の操作でSSE再描画が走っても未保存の入力を保持する。
+// 画面を離れたとき render() が clear する（stale化を防ぐ）。キーは member_id / item_id。
+const memberEdits = new Map(); // member_id -> {name, employee_no}
+const itemEdits = new Map();   // item_id -> {name, location}
 
 function screenWrap(children, extraClass = "") {
   appEl.replaceChildren(el("div", { class: extraClass ? `screen ${extraClass}` : "screen" }, children));
@@ -59,17 +63,28 @@ function adminWrap(title, backAction, bodyKids, sub) {
   appEl.replaceChildren(el("div", { class: "screen admin" }, [bar, body]));
 }
 
-// 物品1件ぶんの状況を MD3 ステータスチップにする（待受の一覧表示で使う）。
-function itemStatusChip(it) {
-  let kind, ico, head;
-  if (!it.is_lent) { kind = "available"; ico = "check"; head = `${it.name}：貸出できます`; }
-  else if (it.is_overdue) { kind = "overdue"; ico = "alert"; head = `延滞中：${it.name}`; }
-  else { kind = "borrowed"; ico = "clock"; head = `貸出中：${it.name}`; }
+// 物品状況の見た目（色種別・アイコン・補足行）はチップ表示と大表示で共通。
+// 見出し文だけが用途で異なるので、それぞれの呼び出し側で与える。
+function statusKind(it) {
+  if (!it.is_lent) return { kind: "available", ico: "check" };
+  if (it.is_overdue) return { kind: "overdue", ico: "alert" };
+  return { kind: "borrowed", ico: "clock" };
+}
+function statusSub(it) {
   const sub = [];
   if (it.is_lent) {
-    if (it.borrower_name) sub.push(`利用者 ${it.borrower_name}`);
-    if (it.due_at) sub.push(`返却予定 ${it.due_at}`);
+    if (it.borrower_name) sub.push(`利用者: ${it.borrower_name}`);
+    if (it.due_at) sub.push(`返却予定: ${it.due_at}`);
   }
+  return sub;
+}
+
+// 物品1件ぶんの状況を MD3 ステータスチップにする（待受の一覧表示で使う）。
+function itemStatusChip(it) {
+  const { kind, ico } = statusKind(it);
+  const head = !it.is_lent ? `${it.name}：貸出できます`
+    : it.is_overdue ? `延滞中：${it.name}` : `貸出中：${it.name}`;
+  const sub = statusSub(it);
   return el("div", { class: `status ${kind}` }, [
     icon(ico, "ico"),
     el("div", { class: "txt" }, [
@@ -81,15 +96,10 @@ function itemStatusChip(it) {
 
 // 単一物品向けの大きな状況表示（遠目でも状態が分かる）。
 function heroStatus(it) {
-  let kind, ico, head;
-  if (!it.is_lent) { kind = "available"; ico = "check"; head = "貸出できます"; }
-  else if (it.is_overdue) { kind = "overdue"; ico = "alert"; head = "延滞中（返却待ち）"; }
-  else { kind = "borrowed"; ico = "clock"; head = "貸出中（返却待ち）"; }
-  const sub = [];
-  if (it.is_lent) {
-    if (it.borrower_name) sub.push(`利用者: ${it.borrower_name}`);
-    if (it.due_at) sub.push(`返却予定: ${it.due_at}`);
-  }
+  const { kind, ico } = statusKind(it);
+  const head = !it.is_lent ? "貸出できます"
+    : it.is_overdue ? "延滞中（返却待ち）" : "貸出中（返却待ち）";
+  const sub = statusSub(it);
   return el("div", { class: `hero-status ${kind}` }, [
     icon(ico, "hero-ico"),
     el("p", { class: "display", html: head }),
@@ -283,11 +293,15 @@ const RENDER = {
     };
 
     const list = el("div", { class: "mlist" }, (d.items || []).map(it => {
-      const editName = el("input", { value: it.name, size: 10 });
-      const editLoc = el("input", { value: it.location, size: 10 });
+      const ed = itemEdits.get(it.item_id);
+      const editName = el("input", { value: ed ? ed.name : it.name, size: 10 });
+      const editLoc = el("input", { value: ed ? ed.location : it.location, size: 10 });
+      const remember = () => itemEdits.set(it.item_id, { name: editName.value, location: editLoc.value });
+      editName.addEventListener("input", remember);
+      editLoc.addEventListener("input", remember);
       const editSave = () => action("update_item", {
         item_id: it.item_id, name: editName.value, location: editLoc.value,
-      }).then(showListResult);
+      }).then(r => { if (r.ok) itemEdits.delete(it.item_id); showListResult(r); });
 
       const activeBtn = it.is_active
         ? el("button", { class: "warn small", onclick: () => action("set_item_active", { item_id: it.item_id, active: false }).then(showListResult), html: "無効化" })
@@ -342,11 +356,15 @@ const RENDER = {
     };
 
     const list = el("div", { class: "mlist" }, d.members.map(m => {
-      const editName = el("input", { value: m.name, size: 8 });
-      const editEmp = el("input", { value: m.employee_no, size: 8 });
+      const ed = memberEdits.get(m.member_id);
+      const editName = el("input", { value: ed ? ed.name : m.name, size: 8 });
+      const editEmp = el("input", { value: ed ? ed.employee_no : m.employee_no, size: 8 });
+      const remember = () => memberEdits.set(m.member_id, { name: editName.value, employee_no: editEmp.value });
+      editName.addEventListener("input", remember);
+      editEmp.addEventListener("input", remember);
       const editSave = () => action("update_member", {
         member_id: m.member_id, name: editName.value, employee_no: editEmp.value,
-      }).then(showListResult);
+      }).then(r => { if (r.ok) memberEdits.delete(m.member_id); showListResult(r); });
 
       const activeBtn = m.is_active
         ? el("button", { class: "warn small", onclick: () => action("set_member_active", { member_id: m.member_id, active: false }).then(showListResult), html: "無効化" })
@@ -404,6 +422,9 @@ const RENDER = {
 
 function render(state) {
   const fn = RENDER[state.screen];
+  // 一覧の行内編集の下書きは、その管理画面を離れたら破棄する（次セッションへ持ち越さない）。
+  if (state.screen !== "member_admin") memberEdits.clear();
+  if (state.screen !== "item_admin") itemEdits.clear();
   if (fn) fn(state.data || {});
 }
 

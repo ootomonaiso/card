@@ -51,6 +51,14 @@ class LoanRepository:
         ).fetchall()
         return [_row_to_loan(r) for r in rows]
 
+    def open_item_ids(self) -> set[int]:
+        """いま貸出中（returned_at IS NULL）の物品IDの集合。
+
+        「貸出中かどうか」の判定を一箇所に集約するための共有ヘルパ
+        （status_list / available_items / 物品管理の状況表示が同じ定義を使う）。
+        """
+        return {ln.item_id for ln in self.list_open()}
+
     def count_open(self, item_id: int) -> int:
         row = self.conn.execute(
             "SELECT COUNT(*) AS c FROM LOAN WHERE item_id = ? AND returned_at IS NULL",

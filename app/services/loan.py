@@ -88,7 +88,7 @@ class LoanService:
 
     def available_items(self) -> list[Item]:
         """いま貸出可能な（有効かつ空いている）物品の一覧。"""
-        open_ids = {ln.item_id for ln in self.loans.list_open()}
+        open_ids = self.loans.open_item_ids()
         return [it for it in self.items.list_active() if it.item_id not in open_ids]
 
     # ---- 貸出（FR-02） ----
