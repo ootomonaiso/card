@@ -8,7 +8,7 @@ Raspberry Pi 4 実機で、**ハードが生きているか**だけを確認す�
 | [`hwtest_reader.py`](hwtest_reader.py) | 社員証をタッチして **IDm が読めるか**（RC-S380 / nfcpy） | T3 / Q10 |
 | [`hwtest_lock.py`](hwtest_lock.py) | GPIO を数秒 ON にして **解錠 → 施錠するか**（駆動回路 + LE-53） | T2 |
 
-配線は [`docs/diagrams/`](../docs/diagrams/)（`mosfet_driver.svg` / `relay_driver.svg` / `pi4_wiring.svg`）参照。
+配線は [`docs/diagrams/`](../docs/diagrams/)（`mosfet_driver.svg` / `pi4_wiring.svg`）参照。
 
 ## 準備（Pi 実機）
 
