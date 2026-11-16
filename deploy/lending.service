@@ -1,0 +1,18 @@
+# セキュアカメラ貸出システム（Web サーバ）の systemd ユニット。
+# 配置:  sudo cp deploy/lending.service /etc/systemd/system/
+# 有効化: sudo systemctl daemon-reload && sudo systemctl enable --now lending
+# ※ User / WorkingDirectory / ExecStart のパスは実機の配置に合わせて変更する。
+[Unit]
+Description=Secure camera lending kiosk server
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/card
+ExecStart=/usr/bin/python3 /home/pi/card/main.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

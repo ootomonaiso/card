@@ -1,0 +1,9 @@
+# Chromium キオスク表示の自動起動（XDG autostart）。
+# 配置: mkdir -p ~/.config/autostart && cp deploy/kiosk.desktop ~/.config/autostart/
+# Bookworm のデスクトップセッション（labwc/Wayfire とも XDG autostart 対応）で起動する。
+[Desktop Entry]
+Type=Application
+Name=Lending Kiosk
+Comment=Secure camera lending kiosk (Chromium fullscreen)
+Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://127.0.0.1:8000/
+X-GNOME-Autostart-enabled=true

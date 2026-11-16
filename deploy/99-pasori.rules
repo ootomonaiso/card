@@ -1,0 +1,8 @@
+# Sony PaSoRi RC-S380 を非 root で nfcpy から使うための udev ルール。
+# 配置:  sudo cp deploy/99-pasori.rules /etc/udev/rules.d/
+# 反映:  sudo udevadm control --reload-rules && sudo udevadm trigger
+#        （反映後、RC-S380 を挿し直す。実行ユーザを plugdev グループに入れること:
+#          sudo usermod -aG plugdev pi）
+# idProduct 06c3 = RC-S380/S, 06c1 = RC-S380/P
+SUBSYSTEM=="usb", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="06c3", MODE="0664", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="06c1", MODE="0664", GROUP="plugdev"
