@@ -8,7 +8,7 @@
 ## 回路図・配線図（SVG）
 
 - [`pi4_wiring.svg`](pi4_wiring.svg) … 接続構成図（配線概要・使用GPIOピン） → 09 §2
-- [`mosfet_driver.svg`](mosfet_driver.svg) … ロック駆動回路（MOSFET ローサイド方式・**採用**） → 09 §4-1
+- [`mosfet_driver.svg`](mosfet_driver.svg) … ロック駆動回路（LM393 ゲートドライバ + 2SK4017 ローサイド・**採用**） → 09 §4-1
 - [`relay_driver.svg`](relay_driver.svg) … ロック駆動回路（リレー方式・**参考／不採用**） → 09 §4-2
 
 SVG は素の XML なので、テキストエディタや Inkscape 等でそのまま編集できる。
