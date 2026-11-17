@@ -66,9 +66,10 @@ class KioskServer(ThreadingHTTPServer):
     def shutdown_app(self) -> None:
         self.terminal.shutdown()
         self.ctx.card_reader.stop()
-        close = getattr(self.ctx.lock, "close", None)
-        if callable(close):
-            close()
+        for dev in (self.ctx.lock, self.ctx.lock_sensor):
+            close = getattr(dev, "close", None)
+            if callable(close):
+                close()
         try:
             self.ctx.conn.close()
         except Exception:

@@ -10,7 +10,7 @@ import threading
 
 from app.config import Config
 from app.db import connect, init_db
-from app.devices.factory import create_card_reader, create_lock
+from app.devices.factory import create_card_reader, create_lock, create_lock_sensor
 from app.repository.items import ItemRepository
 from app.repository.loans import LoanRepository
 from app.repository.members import MemberRepository
@@ -30,6 +30,7 @@ class AppContext:
         clock: Clock | None = None,
         card_reader=None,
         lock=None,
+        lock_sensor=None,
     ) -> None:
         self.cfg = cfg
         self.conn = conn
@@ -43,6 +44,7 @@ class AppContext:
 
         self.card_reader = card_reader if card_reader is not None else create_card_reader(cfg)
         self.lock = lock if lock is not None else create_lock(cfg)
+        self.lock_sensor = lock_sensor if lock_sensor is not None else create_lock_sensor(cfg)
 
         self.auth = AuthService(self.member_repo)
         self.loans = LoanService(

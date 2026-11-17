@@ -37,6 +37,13 @@ class Config:
     lock_gpio_pin: int = 17
     lock_active_high: bool = True
 
+    # 施錠検知センサ（LE-53 カムスイッチ：09 §5-1）。既定は "off"（未使用）。
+    # 配線・現物確認が済んだら "auto"（Pi では実機, それ以外はモック）等に変更する。
+    cam_switch: str = "off"        # "off" | "auto" | "mock" | "real"
+    cam_switch_gpio_pin: int = 27
+    cam_switch_active_low: bool = True  # 施錠で接点が GND に落ちる（内部プルアップ）
+    cam_switch_bounce_ms: int = 50
+
     # デバイス選択: "auto" | "mock" | "real"
     card_reader: str = "auto"
     lock: str = "auto"
@@ -82,6 +89,8 @@ class Config:
             errors.append("card_reader は auto/mock/real のいずれかです")
         if self.lock not in ("auto", "mock", "real"):
             errors.append("lock は auto/mock/real のいずれかです")
+        if self.cam_switch not in ("off", "auto", "mock", "real"):
+            errors.append("cam_switch は off/auto/mock/real のいずれかです")
         if self.log_level.upper() not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
             errors.append("log_level が不正です")
         if errors:

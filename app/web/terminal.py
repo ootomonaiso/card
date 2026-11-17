@@ -348,6 +348,11 @@ class Terminal:
         if loans:
             data["can_return"] = True
             data["return_count"] = len(loans)
+        # カムスイッチ（施錠検知）が有効なら現在の施錠状態を見せる（09 §5-1）。
+        # 無効/不明（None）のときはキーごと出さない。
+        locked = self.ctx.lock_sensor.is_locked()
+        if locked is not None:
+            data["lock_state"] = "locked" if locked else "unlocked"
         return data
 
     def admin_return(self) -> None:

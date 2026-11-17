@@ -264,9 +264,17 @@ const RENDER = {
     menu.style.flexDirection = "column";
     menu.style.width = "min(520px, 90%)";
     for (const b of kids) b.style.width = "100%";
+    // カムスイッチ（施錠検知）が有効なときだけ現在の施錠状態を表示する
+    const lockLine = d.lock_state
+      ? el("p", {
+          class: d.lock_state === "locked" ? "body ok" : "body danger",
+          html: d.lock_state === "locked" ? "施錠状態: 施錠されています" : "施錠状態: 未施錠です",
+        })
+      : null;
     screenWrap([
       el("p", { class: "headline", html: "管理メニュー" }),
       el("p", { class: "body muted", html: d.admin_name ? `管理者: ${d.admin_name}` : "" }),
+      lockLine,
       menu,
     ]);
   },

@@ -43,3 +43,22 @@ def create_lock(cfg: Config):
         )
     from app.devices.mock import MockLock
     return MockLock(unlock_seconds=cfg.unlock_seconds)
+
+
+def create_lock_sensor(cfg: Config):
+    """施錠検知センサ（LE-53 カムスイッチ）。既定は "off"（未使用＝常に状態不明）。"""
+    mode = cfg.cam_switch
+    if mode == "off":
+        from app.devices.mock import NullLockSensor
+        return NullLockSensor()
+    if mode == "auto":
+        mode = "real" if _is_raspberry_pi() else "mock"
+    if mode == "real":
+        from app.devices.cam_switch import GpioCamSwitch
+        return GpioCamSwitch(
+            pin=cfg.cam_switch_gpio_pin,
+            active_low=cfg.cam_switch_active_low,
+            bounce_ms=cfg.cam_switch_bounce_ms,
+        )
+    from app.devices.mock import MockCamSwitch
+    return MockCamSwitch()

@@ -20,6 +20,11 @@
   "lock_gpio_pin": 17,
   "lock_active_high": true,
 
+  "cam_switch": "off",
+  "cam_switch_gpio_pin": 27,
+  "cam_switch_active_low": true,
+  "cam_switch_bounce_ms": 50,
+
   "card_reader": "auto",
   "lock": "auto",
 

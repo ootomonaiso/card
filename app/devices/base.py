@@ -33,3 +33,21 @@ class LockController(Protocol):
         施錠への復帰は内部で非同期に行う。
         """
         ...
+
+
+class LockSensor(Protocol):
+    """施錠検知センサ（LE-53 のカムスイッチ：09 §5-1）。
+
+    カムスイッチは「施錠時 ON」。実機は GPIO 入力（プルアップ）で読む。
+    """
+
+    def is_locked(self) -> bool | None:
+        """施錠されていれば True / 解錠（未施錠）なら False。
+
+        センサ未接続・無効時は None（＝状態不明。呼び出し側は判断に使わない）。
+        """
+        ...
+
+    def close(self) -> None:
+        """GPIO 等の資源を解放する。"""
+        ...

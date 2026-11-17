@@ -53,3 +53,29 @@ class MockLock:
             _log.info("[MockLock] 施錠（通電OFF）")
 
         threading.Thread(target=_off, daemon=True).start()
+
+
+class MockCamSwitch:
+    """施錠検知センサのモック。既定は施錠（True）。set_locked() で切り替えてテストする。"""
+
+    def __init__(self, locked: bool = True) -> None:
+        self._locked = locked
+
+    def set_locked(self, locked: bool) -> None:
+        self._locked = locked
+
+    def is_locked(self) -> bool | None:
+        return self._locked
+
+    def close(self) -> None:
+        pass
+
+
+class NullLockSensor:
+    """施錠検知を使わない構成（既定）。常に None（状態不明）を返す。"""
+
+    def is_locked(self) -> bool | None:
+        return None
+
+    def close(self) -> None:
+        pass
