@@ -159,7 +159,7 @@
 
   <!-- BOM / notes -->
   <rect x="20" y="656" width="900" height="58" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="32" y="674" class="note"><tspan class="lbl">部品（型番）:</tspan> U1 LM393N(DIP-8/代替NJM2903) ／ Q1 2SK4017(東芝 N-ch, TO-220F) ／ D1 1N4007(or ショットキー 1N5819) ／ C2 470µF(220µF可, 電解) ／ C1 0.1µF 積セラ</text>
+  <text x="32" y="674" class="note"><tspan class="lbl">部品（型番）:</tspan> U1 LM393N(DIP-8/代替NJM2903) ／ Q1 2SK4017(東芝 N-ch, TO-220F) ／ D1 1N4148(低デューティ可)/1N4007/1N5819 ／ C2 470µF(220µF可, 電解) ／ C1 0.1µF 積セラ</text>
   <text x="32" y="691" class="note"><tspan class="lbl">抵抗(1/4W):</tspan> R1=R2=10k(基準2.5V) ／ R3=4.7k(プルアップ) ／ R4=100Ω(ゲート直列) ／ Rgs=100k(ゲートプルダウン)</text>
   <text x="32" y="708" class="note"><tspan class="lbl">電源保護(推奨/任意):</tspan> 5V電源にOCP(過電流保護)があればヒューズ省略可。逆接し得るコネクタなら直列ショットキーかキー付きコネクタで対策。未使用コンパレータ入力は +=GND/−=+5V 固定。施錠検知は cam_switch_sense.svg。</text>
 </svg>
