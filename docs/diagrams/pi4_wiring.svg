@@ -49,6 +49,7 @@
   <rect x="670" y="214" width="200" height="56" class="box"/>
   <text x="770" y="238" text-anchor="middle" class="lbl" font-weight="700">ソレノイドロック</text>
   <text x="770" y="256" text-anchor="middle" class="sub">LE-53 / DC5V・2W（通電時解錠）</text>
+  <text x="770" y="286" text-anchor="middle" class="sub">カムスイッチ（茶/黒）→ GPIO27（施錠検知）</text>
 
   <rect x="670" y="312" width="200" height="56" class="box"/>
   <text x="770" y="336" text-anchor="middle" class="lbl" font-weight="700">RTC モジュール</text>
@@ -75,7 +76,8 @@
   <text x="74" y="428" class="pinhdr">GPIO 40ピンヘッダ 使用ピン（抜粋）</text>
   <line x1="60" y1="438" x2="870" y2="438" stroke="#111" stroke-width="1"/>
   <text x="74" y="462" class="lbl"><tspan class="pin">物理11 / GPIO17(BCM)</tspan>　→　ロック駆動回路の入力（LM393 の非反転入力 IN+）。HIGHで解錠。</text>
-  <text x="74" y="486" class="lbl"><tspan class="pin">物理6 / 9 / 14 …（GND）</tspan>　→　駆動回路の GND。ロック用電源の GND と必ず共通にする。</text>
-  <text x="74" y="510" class="lbl"><tspan class="pin">物理3 / GPIO2(SDA1)</tspan>・<tspan class="pin">物理5 / GPIO3(SCL1)</tspan>　→　RTC の SDA / SCL（任意）。</text>
-  <text x="74" y="534" class="lbl"><tspan class="pin">物理2 / 4（5V）</tspan>　→　周辺機器の電源が必要な場合に使用（ソレノイドは別電源推奨）。</text>
+  <text x="74" y="486" class="lbl"><tspan class="pin">物理13 / GPIO27(BCM)</tspan>　←　LE-53 カムスイッチ（茶）。黒→GND。内部プルアップ・施錠でLOW（色は要確認）。</text>
+  <text x="74" y="510" class="lbl"><tspan class="pin">物理6 / 9 / 14 …（GND）</tspan>　→　駆動回路の GND。ロック用電源の GND と必ず共通にする。</text>
+  <text x="74" y="534" class="lbl"><tspan class="pin">物理3 / GPIO2(SDA1)</tspan>・<tspan class="pin">物理5 / GPIO3(SCL1)</tspan>　→　RTC の SDA / SCL（任意）。</text>
+  <text x="74" y="558" class="lbl"><tspan class="pin">物理2 / 4（5V）</tspan>　→　周辺機器の電源が必要な場合に使用（ソレノイドは別電源推奨）。</text>
 </svg>

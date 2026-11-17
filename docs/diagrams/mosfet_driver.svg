@@ -1,24 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 740" font-family="'Segoe UI',system-ui,sans-serif">
   <style>
-    .wire{stroke:#111;stroke-width:2;fill:none}
-    .comp{stroke:#111;stroke-width:2;fill:none}
-    .fillw{fill:#fff;stroke:#111;stroke-width:2}
-    .node{fill:#111}
-    .lbl{fill:#111;font-size:14px}
-    .val{fill:#0b5bbf;font-size:14px;font-weight:600}
-    .ttl{fill:#111;font-size:19px;font-weight:700}
-    .note{fill:#222;font-size:13px}
-    .rail{fill:#b00;font-size:14px;font-weight:700}
+    .wire{stroke:#334155;stroke-width:2.2;fill:none;stroke-linecap:round}
+    .comp{stroke:#334155;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .fillw{fill:#ffffff;stroke:#334155;stroke-width:2.2}
+    .node{fill:#334155}
+    .lbl{fill:#1f2937;font-size:14px}
+    .val{fill:#4f46e5;font-size:14px;font-weight:700}
+    .ref{fill:#0f172a;font-size:14px;font-weight:800}
+    .ttl{fill:#0f172a;font-size:20px;font-weight:800}
+    .note{fill:#475569;font-size:13px}
+    .rail{fill:#e11d48;font-size:15px;font-weight:800}
+    .railpos{stroke:#e11d48;stroke-width:2.6;fill:none;stroke-linecap:round}
+    .railgnd{stroke:#475569;stroke-width:2.6;fill:none;stroke-linecap:round}
+    .chip{font-size:13px;font-weight:800;fill:#ffffff}
   </style>
   <rect x="0" y="0" width="960" height="740" fill="#ffffff"/>
-  <text x="24" y="34" class="ttl">ロック駆動回路（LM393 ゲートドライバ + 2SK4017 ローサイド） ― Raspberry Pi 4</text>
+  <rect x="8" y="8" width="944" height="724" rx="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="26" y="40" class="ttl">ロック駆動回路（LM393 ゲートドライバ + 2SK4017 ローサイド） ― Raspberry Pi 4</text>
+  <line x1="26" y1="50" x2="300" y2="50" stroke="#e11d48" stroke-width="3" stroke-linecap="round"/>
+  <!-- 能動素子を引き立てるアクセントカード（配線より先に敷く） -->
+  <rect x="392" y="286" width="116" height="118" rx="14" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1.5"/>
+  <rect x="620" y="306" width="92" height="78" rx="14" fill="#ecfeff" stroke="#a5f3fc" stroke-width="1.5"/>
 
   <!-- +5V rail -->
-  <line x1="250" y1="100" x2="920" y2="100" class="wire"/>
-  <text x="250" y="90" class="rail">+5V（ロック用電源・LM393/ゲート駆動 共通, GND共通）</text>
+  <line x1="250" y1="100" x2="920" y2="100" class="railpos"/>
+  <rect x="250" y="79" width="48" height="20" rx="10" fill="#e11d48"/>
+  <text x="274" y="93" text-anchor="middle" class="chip">+5V</text>
+  <text x="306" y="93" class="note">ロック用電源・LM393/ゲート駆動 共通（GND共通）</text>
   <!-- GND rail -->
-  <line x1="180" y1="580" x2="920" y2="580" class="wire"/>
-  <text x="182" y="600" class="lbl">GND（Raspberry Pi と共通）</text>
+  <line x1="180" y1="580" x2="920" y2="580" class="railgnd"/>
+  <rect x="182" y="589" width="46" height="20" rx="10" fill="#475569"/>
+  <text x="205" y="603" text-anchor="middle" class="chip">GND</text>
+  <text x="236" y="603" class="note">Raspberry Pi と共通</text>
 
   <!-- Raspberry Pi 4 -->
   <rect x="40" y="250" width="160" height="150" rx="10" class="fillw"/>
