@@ -3,7 +3,8 @@
     .wire{stroke:#334155;stroke-width:2;fill:none}
     .rail{stroke:#ef4444;stroke-width:2.5;fill:none}
     .gnd{stroke:#0f172a;stroke-width:2.5;fill:none}
-    .comp{stroke:#334155;stroke-width:2;fill:#ffffff}
+    .comp{stroke:#334155;stroke-width:2;fill:none}
+    .fillw{stroke:#334155;stroke-width:2;fill:#ffffff}
     .chip{fill:#eef2ff;stroke:#6366f1;stroke-width:2}
     .node{fill:#334155}
     .lbl{font-size:13.5px;font-weight:600;fill:#0f172a}
@@ -14,82 +15,78 @@
     .pin{font-size:11px;fill:#64748b}
   </style>
 
-  <!-- title -->
-  <text x="20" y="30" class="title">ロック駆動回路（採用）: LM393N レベルシフタ + 2SK4017 ローサイド ― 全段 5V / 12V 不要</text>
-  <text x="20" y="50" class="note">GPIO17 を入力分圧で ≈1.65V に落として LM393 で比較 → オープンコレクタ出力 → 2SK4017 ゲート ≈4.5V → LE-53 解錠。極性 HIGH=解錠（lock_active_high=true）。</text>
+  <text x="20" y="30" class="title">ロック駆動回路（実装）: LM393N レベルシフタ + 2SK4017 ローサイド ― 全段 5V</text>
+  <text x="20" y="50" class="note">GPIO17(3.3V) を基準 2.5V と比較 → オープンコレクタ出力 → 2SK4017 ゲート ≈4.8V → LE-53 解錠。極性 HIGH=解錠（lock_active_high=true）。5V はバルクコンで安定化。</text>
 
-  <!-- ===== power rails ===== -->
+  <!-- rails -->
   <line x1="100" y1="90" x2="900" y2="90" class="rail"/>
   <text x="104" y="84" class="val">+5V</text>
   <line x1="100" y1="630" x2="900" y2="630" class="gnd"/>
   <text x="104" y="648" class="lbl">GND（Pi と共通）</text>
 
-  <!-- ===== GPIO input ===== -->
+  <!-- bulk + decoupling caps on 5V (local ground) -->
+  <line x1="150" y1="90" x2="150" y2="106" class="wire"/>
+  <circle cx="150" cy="90" r="3.5" class="node"/>
+  <line x1="138" y1="106" x2="162" y2="106" class="comp" stroke-width="2.5"/>
+  <path d="M138,114 q12,7 24,0" class="comp"/>
+  <line x1="150" y1="114" x2="150" y2="134" class="wire"/>
+  <line x1="140" y1="134" x2="160" y2="134" class="gnd"/>
+  <line x1="144" y1="139" x2="156" y2="139" class="gnd"/>
+  <line x1="147" y1="144" x2="153" y2="144" class="gnd"/>
+  <text x="168" y="110" class="lbl">C2 <tspan class="val">470µF</tspan></text>
+  <text x="168" y="125" class="note">(220µF可) 突入吸収</text>
+
+  <line x1="230" y1="90" x2="230" y2="108" class="wire"/>
+  <circle cx="230" cy="90" r="3.5" class="node"/>
+  <line x1="222" y1="108" x2="222" y2="124" class="comp"/>
+  <line x1="238" y1="108" x2="238" y2="124" class="comp"/>
+  <line x1="230" y1="108" x2="222" y2="108" class="wire"/>
+  <line x1="230" y1="124" x2="222" y2="124" class="wire"/>
+  <line x1="230" y1="124" x2="230" y2="140" class="wire"/>
+  <line x1="220" y1="140" x2="240" y2="140" class="gnd"/>
+  <line x1="224" y1="145" x2="236" y2="145" class="gnd"/>
+  <line x1="227" y1="150" x2="233" y2="150" class="gnd"/>
+  <text x="246" y="120" class="lbl">C1 <tspan class="val">0.1µF</tspan></text>
+
+  <!-- GPIO17 -> IN+ (direct, no divider) -->
   <text x="20" y="286" class="lbl">GPIO17</text>
   <text x="20" y="302" class="note">3.3V</text>
   <circle cx="90" cy="282" r="3.5" class="node"/>
-  <line x1="90" y1="282" x2="150" y2="282" class="wire"/>
+  <line x1="90" y1="282" x2="430" y2="282" class="wire"/>
+  <text x="300" y="275" class="vcall">IN+ = 3.3V（直結）</text>
 
-  <!-- Rin1 (series) -->
-  <rect x="150" y="274" width="52" height="16" rx="2" class="comp"/>
-  <text x="152" y="266" class="lbl">Rin1 <tspan class="val">10k</tspan></text>
-  <line x1="202" y1="282" x2="260" y2="282" class="wire"/>
-  <circle cx="260" cy="282" r="3.5" class="node"/>
-  <text x="248" y="266" class="vcall">IN+ ≈1.65V</text>
-
-  <!-- Rin2 (to GND) -->
-  <line x1="260" y1="282" x2="260" y2="322" class="wire"/>
-  <rect x="252" y="322" width="16" height="52" rx="2" class="comp"/>
-  <text x="272" y="354" class="lbl">Rin2 <tspan class="val">10k</tspan></text>
-  <line x1="260" y1="374" x2="260" y2="630" class="wire"/>
-  <circle cx="260" cy="630" r="3.5" class="node"/>
-
-  <!-- node -> IN+ -->
-  <line x1="260" y1="282" x2="430" y2="282" class="wire"/>
-
-  <!-- ===== Vref divider (IN-) ===== -->
+  <!-- Vref divider R1/R2 = 10k/10k -> 2.5V -->
   <line x1="340" y1="90" x2="340" y2="130" class="wire"/>
   <circle cx="340" cy="90" r="3.5" class="node"/>
-  <rect x="332" y="130" width="16" height="52" rx="2" class="comp"/>
-  <text x="352" y="162" class="lbl">R1 <tspan class="val">22k</tspan></text>
+  <polyline points="340,130 340,136 333,141 347,151 333,161 347,171 340,176 340,182" class="comp"/>
+  <text x="352" y="160" class="lbl">R1 <tspan class="val">10k</tspan></text>
   <line x1="340" y1="182" x2="340" y2="212" class="wire"/>
   <circle cx="340" cy="212" r="3.5" class="node"/>
-  <text x="352" y="216" class="vcall">IN− ≈0.82V</text>
-  <rect x="332" y="238" width="16" height="52" rx="2" class="comp"/>
-  <text x="352" y="270" class="lbl">R2 <tspan class="val">4.3k</tspan></text>
+  <text x="352" y="216" class="vcall">IN− ≈2.5V</text>
+  <polyline points="340,238 340,244 333,249 347,259 333,269 347,279 340,284 340,290" class="comp"/>
+  <text x="352" y="268" class="lbl">R2 <tspan class="val">10k</tspan></text>
   <line x1="340" y1="212" x2="340" y2="238" class="wire"/>
   <line x1="340" y1="290" x2="340" y2="630" class="wire"/>
   <circle cx="340" cy="630" r="3.5" class="node"/>
-
-  <!-- IN- feed: node(340,212) -> up-route -> IN- (430,372); hop over IN+ line at y=282 -->
+  <!-- Vref -> IN- (hop over IN+ line) -->
   <line x1="340" y1="212" x2="400" y2="212" class="wire"/>
   <line x1="400" y1="212" x2="400" y2="278" class="wire"/>
   <path d="M400,278 a6,6 0 0 1 0,8" class="wire"/>
   <line x1="400" y1="286" x2="400" y2="372" class="wire"/>
   <line x1="400" y1="372" x2="430" y2="372" class="wire"/>
 
-  <!-- ===== LM393 ===== -->
+  <!-- LM393 comparator -->
   <polygon points="430,250 430,410 560,330" class="chip"/>
   <text x="446" y="326" class="lbl" font-weight="700">LM393N</text>
   <text x="446" y="342" class="pin">U1 (1/2)</text>
   <text x="438" y="288" class="lbl" font-weight="700">+</text>
   <text x="438" y="378" class="lbl" font-weight="700">−</text>
-  <!-- V+ / GND leads -->
   <line x1="500" y1="290" x2="500" y2="90" class="wire"/>
   <circle cx="500" cy="90" r="3.5" class="node"/>
   <text x="506" y="150" class="pin">V+(8)</text>
   <line x1="500" y1="370" x2="500" y2="630" class="wire"/>
   <circle cx="500" cy="630" r="3.5" class="node"/>
   <text x="506" y="560" class="pin">GND(4)</text>
-  <!-- C1 decoupling near V+ (local ground) -->
-  <line x1="500" y1="120" x2="548" y2="120" class="wire"/>
-  <line x1="540" y1="112" x2="540" y2="128" class="comp"/>
-  <line x1="552" y1="112" x2="552" y2="128" class="comp"/>
-  <line x1="546" y1="128" x2="546" y2="150" class="wire"/>
-  <line x1="536" y1="150" x2="556" y2="150" class="gnd"/>
-  <line x1="540" y1="156" x2="552" y2="156" class="gnd"/>
-  <line x1="544" y1="162" x2="548" y2="162" class="gnd"/>
-  <text x="560" y="124" class="lbl">C1 <tspan class="val">0.1µF</tspan></text>
 
   <!-- output (open collector) -->
   <line x1="560" y1="330" x2="620" y2="330" class="wire"/>
@@ -97,67 +94,72 @@
   <text x="566" y="322" class="pin">OUT(1)</text>
   <text x="566" y="352" class="vcall">OC</text>
 
-  <!-- Rpu pull-up -->
+  <!-- R3 pull-up 4.7k -->
   <line x1="620" y1="90" x2="620" y2="150" class="wire"/>
   <circle cx="620" cy="90" r="3.5" class="node"/>
-  <rect x="612" y="150" width="16" height="52" rx="2" class="comp"/>
-  <text x="632" y="182" class="lbl">Rpu <tspan class="val">1k</tspan></text>
-  <text x="632" y="198" class="note">プルアップ</text>
+  <polyline points="620,150 620,156 613,161 627,171 613,181 627,191 620,196 620,202" class="comp"/>
+  <text x="632" y="180" class="lbl">R3 <tspan class="val">4.7k</tspan></text>
+  <text x="632" y="196" class="note">プルアップ</text>
   <line x1="620" y1="202" x2="620" y2="330" class="wire"/>
 
-  <!-- Rg series to gate -->
-  <rect x="640" y="322" width="52" height="16" rx="2" class="comp"/>
-  <text x="642" y="316" class="lbl">Rg <tspan class="val">100Ω</tspan></text>
+  <!-- R4 series 100ohm -->
+  <polyline points="640,330 646,330 651,323 661,337 671,323 681,337 686,330 692,330" class="comp"/>
+  <text x="636" y="316" class="lbl">R4 <tspan class="val">100Ω</tspan></text>
   <line x1="692" y1="330" x2="730" y2="330" class="wire"/>
   <circle cx="730" cy="330" r="3.5" class="node"/>
-  <text x="700" y="312" class="vcall">GATE ON≈4.5V / OFF 0V</text>
+  <text x="648" y="300" class="vcall">GATE ON≈4.8V / OFF 0V</text>
 
-  <!-- Rgs pull-down -->
+  <!-- Rgs pull-down 100k -->
   <line x1="730" y1="330" x2="730" y2="366" class="wire"/>
-  <rect x="722" y="366" width="16" height="52" rx="2" class="comp"/>
-  <text x="742" y="398" class="lbl">Rgs <tspan class="val">10k</tspan></text>
-  <text x="742" y="414" class="note">プルダウン</text>
+  <polyline points="730,366 730,372 723,377 737,387 723,397 737,407 730,412 730,418" class="comp"/>
+  <text x="742" y="396" class="lbl">Rgs <tspan class="val">100k</tspan></text>
   <line x1="730" y1="418" x2="730" y2="630" class="wire"/>
   <circle cx="730" cy="630" r="3.5" class="node"/>
 
-  <!-- Q1 (labeled block: readable) -->
-  <line x1="730" y1="330" x2="762" y2="330" class="wire"/>
-  <rect x="762" y="302" width="60" height="56" rx="8" class="chip" fill="#ecfeff" stroke="#0891b2"/>
-  <text x="772" y="326" class="lbl" font-weight="700">Q1</text>
-  <text x="768" y="344" class="pin">2SK4017</text>
-  <text x="748" y="346" class="pin">G</text>
-  <text x="796" y="300" class="pin">D</text>
-  <text x="796" y="372" class="pin">S</text>
-  <!-- D (top) -->
-  <line x1="792" y1="302" x2="792" y2="250" class="wire"/>
-  <circle cx="792" cy="250" r="3.5" class="node"/>
-  <!-- S (bottom) -->
-  <line x1="792" y1="358" x2="792" y2="630" class="wire"/>
-  <circle cx="792" cy="630" r="3.5" class="node"/>
+  <!-- Q1 : N-ch enhancement MOSFET symbol -->
+  <line x1="730" y1="330" x2="752" y2="330" class="wire"/>
+  <line x1="752" y1="312" x2="752" y2="348" class="comp"/>
+  <line x1="762" y1="312" x2="762" y2="324" class="comp"/>
+  <line x1="762" y1="327" x2="762" y2="339" class="comp"/>
+  <line x1="762" y1="342" x2="762" y2="354" class="comp"/>
+  <line x1="762" y1="318" x2="786" y2="318" class="wire"/>
+  <line x1="786" y1="318" x2="786" y2="250" class="wire"/>
+  <circle cx="786" cy="250" r="3.5" class="node"/>
+  <line x1="762" y1="348" x2="786" y2="348" class="wire"/>
+  <line x1="786" y1="348" x2="786" y2="630" class="wire"/>
+  <circle cx="786" cy="630" r="3.5" class="node"/>
+  <line x1="786" y1="333" x2="786" y2="348" class="wire"/>
+  <line x1="786" y1="333" x2="768" y2="333" class="wire"/>
+  <polygon points="768,333 777,329 777,337" class="node"/>
+  <text x="792" y="300" class="pin">D</text>
+  <text x="792" y="372" class="pin">S</text>
+  <text x="735" y="356" class="pin">G</text>
+  <text x="716" y="250" class="lbl" text-anchor="end">Q1</text>
+  <text x="716" y="266" class="pin" text-anchor="end">2SK4017</text>
 
-  <!-- solenoid LE-53 -->
-  <line x1="792" y1="250" x2="845" y2="250" class="wire"/>
+  <!-- solenoid LE-53 (coil) -->
+  <line x1="786" y1="250" x2="845" y2="250" class="wire"/>
+  <circle cx="845" cy="250" r="3.5" class="node"/>
   <line x1="845" y1="90" x2="845" y2="170" class="wire"/>
   <circle cx="845" cy="90" r="3.5" class="node"/>
-  <path d="M845,170 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,188 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,206 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,224 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0" class="comp" fill="none"/>
+  <path d="M845,170 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,188 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,206 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,224 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0" class="comp"/>
   <line x1="845" y1="242" x2="845" y2="250" class="wire"/>
-  <circle cx="845" cy="250" r="3.5" class="node"/>
   <text x="872" y="196" class="lbl">LE-53</text>
   <text x="872" y="212" class="note">電磁ロック</text>
   <text x="872" y="228" class="vcall">0.4A @5V</text>
 
-  <!-- D1 flyback across coil -->
+  <!-- D1 flyback diode -->
   <line x1="845" y1="250" x2="905" y2="250" class="wire"/>
-  <line x1="905" y1="250" x2="905" y2="212" class="wire"/>
-  <polygon points="896,212 914,212 905,194" class="comp"/>
-  <line x1="896" y1="194" x2="914" y2="194" class="wire" stroke-width="2.5"/>
-  <line x1="905" y1="194" x2="905" y2="90" class="wire"/>
+  <line x1="905" y1="250" x2="905" y2="214" class="wire"/>
+  <polygon points="896,214 914,214 905,196" class="fillw"/>
+  <line x1="896" y1="196" x2="914" y2="196" class="comp" stroke-width="2.5"/>
+  <line x1="905" y1="196" x2="905" y2="90" class="wire"/>
   <circle cx="905" cy="90" r="3.5" class="node"/>
-  <text x="900" y="276" class="lbl" text-anchor="middle">D1</text>
+  <text x="905" y="272" class="lbl" text-anchor="middle">D1</text>
 
-  <!-- ===== BOM / notes ===== -->
+  <!-- BOM / notes -->
   <rect x="20" y="656" width="900" height="58" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
-  <text x="32" y="674" class="note"><tspan class="lbl">部品（型番）:</tspan> U1 LM393N(DIP-8/代替NJM2903) ／ Q1 2SK4017(東芝 N-ch, TO-220F) ／ D1 1N4007(or ショットキー 1N5819) ／ C1 0.1µF 積層セラミック</text>
-  <text x="32" y="691" class="note"><tspan class="lbl">抵抗(1/4W):</tspan> Rin1,Rin2=10k ／ R1=22k ／ R2=4.3k(4.7k可) ／ Rpu=1k ／ Rg=100Ω ／ Rgs=10k</text>
-  <text x="32" y="708" class="note"><tspan class="lbl">電源保護:</tspan> 入力側に F1 ヒューズ(~1A) ＋ D2 逆接保護(1N5819) を付加（§4/§8）。未使用コンパレータ入力は +=GND / −=+5V に固定。</text>
+  <text x="32" y="674" class="note"><tspan class="lbl">部品（型番）:</tspan> U1 LM393N(DIP-8/代替NJM2903) ／ Q1 2SK4017(東芝 N-ch, TO-220F) ／ D1 1N4007(or ショットキー 1N5819) ／ C2 470µF(220µF可, 電解) ／ C1 0.1µF 積セラ</text>
+  <text x="32" y="691" class="note"><tspan class="lbl">抵抗(1/4W):</tspan> R1=R2=10k(基準2.5V) ／ R3=4.7k(プルアップ) ／ R4=100Ω(ゲート直列) ／ Rgs=100k(ゲートプルダウン)</text>
+  <text x="32" y="708" class="note"><tspan class="lbl">電源保護(推奨/任意):</tspan> 5V電源にOCP(過電流保護)があればヒューズ省略可。逆接し得るコネクタなら直列ショットキーかキー付きコネクタで対策。未使用コンパレータ入力は +=GND/−=+5V 固定。施錠検知は cam_switch_sense.svg。</text>
 </svg>
