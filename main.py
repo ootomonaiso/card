@@ -34,12 +34,14 @@ def seed(ctx: AppContext) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="セキュアカメラ貸出システム")
+    parser = argparse.ArgumentParser(description="貸出管理システム")
     parser.add_argument("--seed", action="store_true", help="デモ用メンバーを投入")
     parser.add_argument("--init", action="store_true", help="DB初期化のみ")
     parser.add_argument("--config", default=None, help="config.json のパス")
     parser.add_argument("--host", default="127.0.0.1", help="バインドするホスト（既定 localhost）")
     parser.add_argument("--port", type=int, default=8000, help="ポート（既定 8000）")
+    parser.add_argument("--allow-remote", action="store_true",
+                        help="ループバック以外へのバインドを明示的に許可する（既定は拒否）")
     parser.add_argument("--add-admin", action="store_true",
                         help="管理者を非対話で追加する（--idm --name --employee-no が必須／サーバは起動しない）")
     parser.add_argument("--idm", default=None, help="--add-admin 用：カードのIDm")
@@ -73,6 +75,21 @@ def main() -> None:
         return
     if args.seed:
         seed(ctx)
+
+    # 管理操作はサーバ全体で単一セッション（per-client 認証/CSRF なし）のため、
+    # localhost 以外へ公開すると第三者が管理機能を叩けてしまう。既定で拒否する。
+    _LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
+    if args.host not in _LOOPBACK_HOSTS and not args.allow_remote:
+        parser.error(
+            f"host={args.host!r} はループバックではありません。"
+            "本システムは per-client 認証/CSRF を持たず localhost 運用が前提です。"
+            "ネットワーク公開が本当に必要な場合のみ --allow-remote を併用してください。"
+        )
+    if args.host not in _LOOPBACK_HOSTS:
+        log.warning(
+            "ループバック以外へバインドします host=%s: 管理機能が無認証で露出します（--allow-remote 指定）",
+            args.host,
+        )
 
     from app.web.server import serve
     serve(ctx, host=args.host, port=args.port)

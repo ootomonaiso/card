@@ -12,6 +12,7 @@
   "duration_choices_min": [15, 30, 60, 120, 240, 480],
   "csv_datetime_format": "%Y/%m/%d %H:%M",
   "csv_encoding": "utf-8-sig",
+  "csv_export_dirs": [".", "/media", "/mnt"],
 
   "show_borrower_name": true,
   "allow_return_by_others": false,

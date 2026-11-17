@@ -1,7 +1,7 @@
 #!/bin/sh
 # SQLite DB の安全なバックアップ（WAL 稼働中でも整合の取れたコピーを作る）。
 # 使い方:  ./backup_db.sh [DBパス] [出力先ディレクトリ]
-# cron 例（毎日 3:00、7世代は日付名で自然に残る）:
+# cron 例（毎日 3:00、日付名で保存し 30 日より古い世代を自動削除）:
 #   0 3 * * * /home/pi/card/deploy/backup_db.sh /home/pi/card/lending.sqlite3 /home/pi/backups
 set -eu
 

@@ -11,4 +11,4 @@
 
 - 言語/スタック：Python 3.11 / WebUI（標準 http.server + SSE、Material Design 3）/ 標準 sqlite3（実機のみ nfcpy・gpiozero）
 - 対象機：Raspberry Pi 4 / Raspberry Pi OS Bookworm（Chromium キオスク表示）
-- コードは [`app/`](../../app)、テストは [`tests/`](../../tests)（`python -m pytest tests/ -q` で108件）
+- コードは [`app/`](../../app)、テストは [`tests/`](../../tests)（`python -m pytest tests/ -q` で124件・9ファイル）

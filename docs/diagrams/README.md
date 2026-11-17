@@ -3,12 +3,13 @@
 | 種別 | ソース | 備考 |
 |------|--------|------|
 | UML図（業務フロー・ユースケース・ER・シーケンス・状態遷移・画面遷移） | 各設計書 `docs/*.md` 内の **Mermaid** | GitHub 上でそのまま描画される。これが正。 |
-| 回路図・配線図 | 本フォルダの **SVG** | 下記 3 点。Mermaid では描けないため手描き SVG。 |
+| 回路図・配線図 | 本フォルダの **SVG** | 下記 4 点。Mermaid では描けないため手描き SVG。 |
 
 ## 回路図・配線図（SVG）
 
 - [`pi4_wiring.svg`](pi4_wiring.svg) … 接続構成図（配線概要・使用GPIOピン） → 09 §2
-- [`mosfet_driver.svg`](mosfet_driver.svg) … ロック駆動回路（LM393 ゲートドライバ + 2SK4017 ローサイド・**採用**） → 09 §4-1
+- [`mosfet_driver.svg`](mosfet_driver.svg) … ロック駆動回路（LM393 ゲートドライバ + 2SK4017 ローサイド・**採用**。型番・動作点・入力分圧対策入り） → 09 §4-1
+- [`cam_switch_sense.svg`](cam_switch_sense.svg) … 施錠検知回路（LE-53 カムスイッチ → GPIO27。施錠=LOW/解錠=HIGH） → 09 §5-1
 - [`relay_driver.svg`](relay_driver.svg) … ロック駆動回路（リレー方式・**参考／不採用**） → 09 §4-2
 
 SVG は素の XML なので、テキストエディタや Inkscape 等でそのまま編集できる。

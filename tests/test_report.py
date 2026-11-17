@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from app.services.clock import FixedClock
+from app.services.report import ExportPathError, validate_export_path
 from tests.helpers import make_ctx
 
 
@@ -70,6 +71,43 @@ class CsvTest(unittest.TestCase):
                 datetime(2026, 12, 1).date(), datetime(2026, 12, 31).date(), out
             )
         self.assertEqual(n, 0)
+
+
+class ExportPathTest(unittest.TestCase):
+    """CSV出力先の封じ込め（任意パス書き込み対策）。"""
+
+    def test_allows_csv_in_allowed_dir(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = validate_export_path("log.csv", [d, "."], "lending.sqlite3")
+            # d 配下に解決されるのは相対 "." 側ではなく許可ディレクトリ経由ではないが、
+            # カレント配下の log.csv は "." 許可で通る。
+            self.assertTrue(str(out).endswith("log.csv"))
+
+    def test_allows_absolute_path_under_allowed_dir(self):
+        with tempfile.TemporaryDirectory() as d:
+            target = str(Path(d) / "lending_log.csv")
+            out = validate_export_path(target, [d], "lending.sqlite3")
+            self.assertEqual(out, Path(target).resolve())
+
+    def test_rejects_non_csv_extension(self):
+        with self.assertRaises(ExportPathError):
+            validate_export_path("lending.service", ["."], "lending.sqlite3")
+
+    def test_rejects_db_overwrite(self):
+        with self.assertRaises(ExportPathError):
+            # DB 名が .csv でも上書きは拒否
+            validate_export_path("x.csv", ["."], "x.csv")
+
+    def test_rejects_traversal_outside_allowed_dirs(self):
+        with tempfile.TemporaryDirectory() as d:
+            # 許可は d のみ。.. で外へ出るパスは弾かれる。
+            with self.assertRaises(ExportPathError):
+                validate_export_path(str(Path(d) / ".." / "evil.csv"), [d], "lending.sqlite3")
+
+    def test_rejects_path_outside_allowed_dirs(self):
+        with tempfile.TemporaryDirectory() as allowed, tempfile.TemporaryDirectory() as other:
+            with self.assertRaises(ExportPathError):
+                validate_export_path(str(Path(other) / "x.csv"), [allowed], "lending.sqlite3")
 
 
 if __name__ == "__main__":

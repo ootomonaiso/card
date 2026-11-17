@@ -25,6 +25,9 @@ class Config:
     duration_choices_min: list[int] = field(default_factory=lambda: [15, 30, 60, 120, 240, 480])
     csv_datetime_format: str = "%Y/%m/%d %H:%M"
     csv_encoding: str = "utf-8-sig"
+    # CSV 出力を許可するディレクトリ（管理者入力の任意パス書き込みを封じ込める）。
+    # 既定はカレントと Bookworm の USB 自動マウント先（/media, /mnt）。配下の *.csv のみ許可。
+    csv_export_dirs: list[str] = field(default_factory=lambda: [".", "/media", "/mnt"])
 
     # 課題管理表の未決事項（[10] Q4/Q6 等）を設定で切替
     show_borrower_name: bool = True
@@ -85,6 +88,10 @@ class Config:
             errors.append("duration_choices_min は 1 件以上必要です")
         elif any((not isinstance(m, int)) or m <= 0 for m in self.duration_choices_min):
             errors.append("duration_choices_min は正の整数のみ指定できます")
+        if not self.csv_export_dirs:
+            errors.append("csv_export_dirs は 1 件以上必要です")
+        elif any((not isinstance(d, str)) or not d.strip() for d in self.csv_export_dirs):
+            errors.append("csv_export_dirs は空でない文字列のみ指定できます")
         if self.card_reader not in ("auto", "mock", "real"):
             errors.append("card_reader は auto/mock/real のいずれかです")
         if self.lock not in ("auto", "mock", "real"):

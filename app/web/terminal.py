@@ -17,6 +17,7 @@ from app.services.clock import from_iso
 from app.services.item import ItemError
 from app.services.loan import LoanError
 from app.services.member import MemberError
+from app.services.report import ExportPathError, validate_export_path
 
 DURATION_LABELS = {15: "15分", 30: "30分", 60: "1時間", 120: "2時間", 240: "4時間", 480: "8時間"}
 
@@ -583,15 +584,22 @@ class Terminal:
             except ValueError:
                 return {"ok": False, "message": "日付は YYYY/MM/DD 形式で入力してください"}
             try:
-                n = self.ctx.reports.export_csv(start, end, path.strip())
+                safe_path = validate_export_path(
+                    path, self.cfg.csv_export_dirs, self.cfg.db_path
+                )
+            except ExportPathError as e:
+                _log.warning("CSV出力先が拒否されました path=%s: %s", path, e)
+                return {"ok": False, "message": str(e)}
+            try:
+                n = self.ctx.reports.export_csv(start, end, safe_path)
             except OSError as e:
                 _log.error("CSV出力に失敗 path=%s: %s", path, e)
                 return {"ok": False, "message": str(e)}
             audit().info(
                 "CSV出力 start=%s end=%s rows=%s path=%s",
-                start_s.strip(), end_s.strip(), n, path.strip(),
+                start_s.strip(), end_s.strip(), n, safe_path,
             )
-            return {"ok": True, "message": f"{n} 件を書き出しました → {path}"}
+            return {"ok": True, "message": f"{n} 件を書き出しました → {safe_path}"}
 
     # ---------------------------------------------------------- 無操作タイムアウト（NFR-06）
     def _reset_idle(self) -> None:

@@ -29,6 +29,39 @@ def _csv_safe(value: str) -> str:
     return value
 
 
+class ExportPathError(ValueError):
+    """管理者が指定したCSV出力先が許可されていないときに送出する。"""
+
+
+def validate_export_path(
+    out_path: str | Path, allowed_dirs: list[str], db_path: str | Path
+) -> Path:
+    """管理者が入力したCSV出力先を検証し、正規化した絶対パスを返す。
+
+    任意パス書き込み（パストラバーサル／DB・システムファイル上書き）を防ぐための境界検証。
+    - 拡張子は .csv に限定（lending.sqlite3 や *.service 等の上書きを防ぐ）
+    - `..` を含むパスは resolve で正規化され、許可ディレクトリ外になれば弾かれる
+    - 許可ディレクトリ（既定: カレント / USBマウント先 /media・/mnt）配下のみ許可
+    - DB ファイルそのものへの上書きは明示的に拒否
+    許可外なら ExportPathError を送出する。
+    """
+    p = Path(str(out_path).strip())
+    if p.suffix.lower() != ".csv":
+        raise ExportPathError("出力ファイル名は .csv で指定してください")
+    # 絶対パスとの結合は絶対パス側が優先される（相対パスはカレント基準で解決）
+    resolved = (Path.cwd() / p).resolve()
+    db_resolved = (Path.cwd() / Path(db_path)).resolve()
+    if resolved == db_resolved:
+        raise ExportPathError("データベースファイルは上書きできません")
+    for base in allowed_dirs:
+        base_resolved = (Path.cwd() / Path(base).expanduser()).resolve()
+        if resolved == base_resolved or base_resolved in resolved.parents:
+            return resolved
+    raise ExportPathError(
+        "許可されていない出力先です（USBメモリ等の許可ディレクトリ配下を指定してください）"
+    )
+
+
 class ReportService:
     def __init__(
         self,

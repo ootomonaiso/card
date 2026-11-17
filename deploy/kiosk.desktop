@@ -4,6 +4,6 @@
 [Desktop Entry]
 Type=Application
 Name=Lending Kiosk
-Comment=Secure camera lending kiosk (Chromium fullscreen)
+Comment=Lending management kiosk (Chromium fullscreen)
 Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://127.0.0.1:8000/
 X-GNOME-Autostart-enabled=true

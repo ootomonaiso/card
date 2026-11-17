@@ -88,10 +88,6 @@ class LockFailureTest(unittest.TestCase):
         self.assertTrue(self._is_lent())
 
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
-
-
 class MemberDeleteGuardTest(unittest.TestCase):
     """物理削除は保守用。貸借ログがあるメンバーは削除できない（NFR-04）。"""
 
@@ -134,3 +130,7 @@ class DoubleReturnTest(unittest.TestCase):
         ).fetchone()
         # 最初の返却日時が上書きされていないこと
         self.assertEqual(row["returned_at"], "2026-11-08 09:00:00")
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

@@ -1,178 +1,163 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 740" font-family="'Segoe UI',system-ui,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 720" font-family="system-ui,'Segoe UI',sans-serif">
   <style>
-    .wire{stroke:#334155;stroke-width:2.2;fill:none;stroke-linecap:round}
-    .comp{stroke:#334155;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-    .fillw{fill:#ffffff;stroke:#334155;stroke-width:2.2}
+    .wire{stroke:#334155;stroke-width:2;fill:none}
+    .rail{stroke:#ef4444;stroke-width:2.5;fill:none}
+    .gnd{stroke:#0f172a;stroke-width:2.5;fill:none}
+    .comp{stroke:#334155;stroke-width:2;fill:#ffffff}
+    .chip{fill:#eef2ff;stroke:#6366f1;stroke-width:2}
     .node{fill:#334155}
-    .lbl{fill:#1f2937;font-size:14px}
-    .val{fill:#4f46e5;font-size:14px;font-weight:700}
-    .ref{fill:#0f172a;font-size:14px;font-weight:800}
-    .ttl{fill:#0f172a;font-size:20px;font-weight:800}
-    .note{fill:#475569;font-size:13px}
-    .rail{fill:#e11d48;font-size:15px;font-weight:800}
-    .railpos{stroke:#e11d48;stroke-width:2.6;fill:none;stroke-linecap:round}
-    .railgnd{stroke:#475569;stroke-width:2.6;fill:none;stroke-linecap:round}
-    .chip{font-size:13px;font-weight:800;fill:#ffffff}
+    .lbl{font-size:13.5px;font-weight:600;fill:#0f172a}
+    .val{font-size:12.5px;font-weight:700;fill:#2563eb}
+    .note{font-size:12px;fill:#475569}
+    .vcall{font-size:12px;font-weight:700;fill:#16a34a}
+    .title{font-size:17px;font-weight:700;fill:#0f172a}
+    .pin{font-size:11px;fill:#64748b}
   </style>
-  <rect x="0" y="0" width="960" height="740" fill="#ffffff"/>
-  <rect x="8" y="8" width="944" height="724" rx="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="26" y="40" class="ttl">ロック駆動回路（LM393 ゲートドライバ + 2SK4017 ローサイド） ― Raspberry Pi 4</text>
-  <line x1="26" y1="50" x2="300" y2="50" stroke="#e11d48" stroke-width="3" stroke-linecap="round"/>
-  <!-- 能動素子を引き立てるアクセントカード（配線より先に敷く） -->
-  <rect x="392" y="286" width="116" height="118" rx="14" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1.5"/>
-  <rect x="620" y="306" width="92" height="78" rx="14" fill="#ecfeff" stroke="#a5f3fc" stroke-width="1.5"/>
 
-  <!-- +5V rail -->
-  <line x1="250" y1="100" x2="920" y2="100" class="railpos"/>
-  <rect x="250" y="79" width="48" height="20" rx="10" fill="#e11d48"/>
-  <text x="274" y="93" text-anchor="middle" class="chip">+5V</text>
-  <text x="306" y="93" class="note">ロック用電源・LM393/ゲート駆動 共通（GND共通）</text>
-  <!-- GND rail -->
-  <line x1="180" y1="580" x2="920" y2="580" class="railgnd"/>
-  <rect x="182" y="589" width="46" height="20" rx="10" fill="#475569"/>
-  <text x="205" y="603" text-anchor="middle" class="chip">GND</text>
-  <text x="236" y="603" class="note">Raspberry Pi と共通</text>
+  <!-- title -->
+  <text x="20" y="30" class="title">ロック駆動回路（採用）: LM393N レベルシフタ + 2SK4017 ローサイド ― 全段 5V / 12V 不要</text>
+  <text x="20" y="50" class="note">GPIO17 を入力分圧で ≈1.65V に落として LM393 で比較 → オープンコレクタ出力 → 2SK4017 ゲート ≈4.5V → LE-53 解錠。極性 HIGH=解錠（lock_active_high=true）。</text>
 
-  <!-- Raspberry Pi 4 -->
-  <rect x="40" y="250" width="160" height="150" rx="10" class="fillw"/>
-  <text x="120" y="318" text-anchor="middle" class="lbl" font-weight="700">Raspberry</text>
-  <text x="120" y="338" text-anchor="middle" class="lbl" font-weight="700">Pi 4</text>
-  <!-- GPIO17 pin -->
-  <line x1="200" y1="285" x2="230" y2="285" class="wire"/>
-  <circle cx="200" cy="285" r="3" class="node"/>
-  <text x="196" y="278" text-anchor="end" class="lbl">GPIO17</text>
-  <!-- GND pin -->
-  <line x1="200" y1="360" x2="230" y2="360" class="wire"/>
-  <circle cx="200" cy="360" r="3" class="node"/>
-  <text x="196" y="365" text-anchor="end" class="lbl">GND</text>
-  <polyline points="230,360 230,580" class="wire"/>
-  <circle cx="230" cy="580" r="3.5" class="node"/>
+  <!-- ===== power rails ===== -->
+  <line x1="100" y1="90" x2="900" y2="90" class="rail"/>
+  <text x="104" y="84" class="val">+5V</text>
+  <line x1="100" y1="630" x2="900" y2="630" class="gnd"/>
+  <text x="104" y="648" class="lbl">GND（Pi と共通）</text>
 
-  <!-- GPIO17 -> IN+ (non-inverting) -->
-  <polyline points="230,285 380,285 380,320 405,320" class="wire"/>
-  <text x="300" y="278" class="note">3.3V ロジック</text>
+  <!-- ===== GPIO input ===== -->
+  <text x="20" y="286" class="lbl">GPIO17</text>
+  <text x="20" y="302" class="note">3.3V</text>
+  <circle cx="90" cy="282" r="3.5" class="node"/>
+  <line x1="90" y1="282" x2="150" y2="282" class="wire"/>
 
-  <!-- Reference divider R1/R2 -> IN- (inverting), ~1.6V -->
-  <polyline points="300,100 300,140" class="wire"/>
-  <circle cx="300" cy="100" r="3.5" class="node"/>
-  <path d="M300,140 l0,6 l-9,3 l18,6 l-18,6 l18,6 l-9,3 l0,6" class="comp"/>
-  <text x="312" y="162" class="lbl">R1 <tspan class="val">10kΩ</tspan></text>
-  <polyline points="300,176 300,205" class="wire"/>
-  <circle cx="300" cy="205" r="3.5" class="node"/>
-  <text x="250" y="200" text-anchor="end" class="val">≈1.6V</text>
-  <polyline points="300,205 300,235" class="wire"/>
-  <path d="M300,235 l0,6 l-9,3 l18,6 l-18,6 l18,6 l-9,3 l0,6" class="comp"/>
-  <text x="312" y="257" class="lbl">R2 <tspan class="val">4.7kΩ</tspan></text>
-  <polyline points="300,271 300,580" class="wire"/>
-  <circle cx="300" cy="580" r="3.5" class="node"/>
-  <!-- Vref branch to IN- -->
-  <polyline points="300,205 360,205 360,368 405,368" class="wire"/>
-  <text x="300" y="412" class="note">基準電圧（分圧）</text>
+  <!-- Rin1 (series) -->
+  <rect x="150" y="274" width="52" height="16" rx="2" class="comp"/>
+  <text x="152" y="266" class="lbl">Rin1 <tspan class="val">10k</tspan></text>
+  <line x1="202" y1="282" x2="260" y2="282" class="wire"/>
+  <circle cx="260" cy="282" r="3.5" class="node"/>
+  <text x="248" y="266" class="vcall">IN+ ≈1.65V</text>
 
-  <!-- Comparator LM393 (1 of 2) -->
-  <polygon points="405,300 405,390 495,345" class="fillw"/>
-  <text x="430" y="342" class="lbl" font-weight="700">LM393N</text>
-  <text x="405" y="430" class="note">U1 コンパレータ（1/2・オープンコレクタ出力）</text>
-  <text x="414" y="324" class="lbl" font-weight="700">+</text>
-  <text x="414" y="376" class="lbl" font-weight="700">−</text>
-  <!-- V+ and GND power leads -->
-  <polyline points="430,312 430,100" class="wire"/>
-  <circle cx="430" cy="100" r="3.5" class="node"/>
-  <text x="436" y="150" class="note">V+(8)</text>
-  <polyline points="430,378 430,580" class="wire"/>
-  <circle cx="430" cy="580" r="3.5" class="node"/>
-  <text x="436" y="560" class="note">GND(4)</text>
-  <!-- Output (open collector) -->
-  <polyline points="495,345 525,345" class="wire"/>
-  <circle cx="525" cy="345" r="3.5" class="node"/>
-  <text x="500" y="338" class="note">OUT(1)</text>
+  <!-- Rin2 (to GND) -->
+  <line x1="260" y1="282" x2="260" y2="322" class="wire"/>
+  <rect x="252" y="322" width="16" height="52" rx="2" class="comp"/>
+  <text x="272" y="354" class="lbl">Rin2 <tspan class="val">10k</tspan></text>
+  <line x1="260" y1="374" x2="260" y2="630" class="wire"/>
+  <circle cx="260" cy="630" r="3.5" class="node"/>
 
-  <!-- Pull-up Rpu from +5V to OUT node -->
-  <polyline points="525,100 525,140" class="wire"/>
-  <circle cx="525" cy="100" r="3.5" class="node"/>
-  <path d="M525,140 l0,6 l-9,3 l18,6 l-18,6 l18,6 l-9,3 l0,6" class="comp"/>
-  <text x="537" y="232" class="lbl">Rpu <tspan class="val">1kΩ</tspan></text>
-  <text x="537" y="248" class="note">プルアップ</text>
-  <polyline points="525,176 525,345" class="wire"/>
+  <!-- node -> IN+ -->
+  <line x1="260" y1="282" x2="430" y2="282" class="wire"/>
 
-  <!-- Rg series gate resistor: OUT -> gate -->
-  <polyline points="525,345 545,345" class="wire"/>
-  <path d="M545,345 l6,0 l3,-9 l6,18 l6,-18 l6,18 l6,-18 l3,9 l9,0" class="comp"/>
-  <text x="543" y="331" class="lbl">Rg <tspan class="val">100Ω</tspan></text>
-  <polyline points="590,345 600,345" class="wire"/>
-  <circle cx="600" cy="345" r="3.5" class="node"/>
+  <!-- ===== Vref divider (IN-) ===== -->
+  <line x1="340" y1="90" x2="340" y2="130" class="wire"/>
+  <circle cx="340" cy="90" r="3.5" class="node"/>
+  <rect x="332" y="130" width="16" height="52" rx="2" class="comp"/>
+  <text x="352" y="162" class="lbl">R1 <tspan class="val">22k</tspan></text>
+  <line x1="340" y1="182" x2="340" y2="212" class="wire"/>
+  <circle cx="340" cy="212" r="3.5" class="node"/>
+  <text x="352" y="216" class="vcall">IN− ≈0.82V</text>
+  <rect x="332" y="238" width="16" height="52" rx="2" class="comp"/>
+  <text x="352" y="270" class="lbl">R2 <tspan class="val">4.3k</tspan></text>
+  <line x1="340" y1="212" x2="340" y2="238" class="wire"/>
+  <line x1="340" y1="290" x2="340" y2="630" class="wire"/>
+  <circle cx="340" cy="630" r="3.5" class="node"/>
 
-  <!-- Rgs pull-down: gate -> GND -->
-  <polyline points="600,345 600,367" class="wire"/>
-  <path d="M600,367 l0,6 l-9,3 l18,6 l-18,6 l18,6 l-9,3 l0,6" class="comp"/>
-  <polyline points="600,403 600,580" class="wire"/>
-  <circle cx="600" cy="580" r="3.5" class="node"/>
-  <text x="610" y="392" class="lbl">Rgs <tspan class="val">10kΩ</tspan></text>
-  <text x="610" y="408" class="note">プルダウン</text>
+  <!-- IN- feed: node(340,212) -> up-route -> IN- (430,372); hop over IN+ line at y=282 -->
+  <line x1="340" y1="212" x2="400" y2="212" class="wire"/>
+  <line x1="400" y1="212" x2="400" y2="278" class="wire"/>
+  <path d="M400,278 a6,6 0 0 1 0,8" class="wire"/>
+  <line x1="400" y1="286" x2="400" y2="372" class="wire"/>
+  <line x1="400" y1="372" x2="430" y2="372" class="wire"/>
 
-  <!-- Q1 2SK4017 (N-ch enhancement) -->
-  <line x1="600" y1="345" x2="632" y2="345" class="wire"/>
-  <line x1="632" y1="323" x2="632" y2="367" class="comp"/>
-  <line x1="646" y1="321" x2="646" y2="369" class="comp"/>
-  <!-- drain lead (top) -->
-  <polyline points="646,327 680,327 680,215" class="wire"/>
-  <!-- source lead (bottom) -->
-  <polyline points="646,363 680,363 680,580" class="wire"/>
-  <circle cx="680" cy="580" r="3.5" class="node"/>
-  <!-- body tie + N-ch arrow -->
-  <polyline points="646,345 670,345 670,363" class="wire"/>
-  <polygon points="663,345 671,341 671,349" class="node"/>
-  <text x="712" y="340" class="lbl" font-weight="700">Q1  2SK4017（N-ch）</text>
-  <text x="712" y="356" class="note">TO-220F ピン: G–D–S（東芝）</text>
-  <text x="712" y="372" class="note">ゲート駆動 ≈5V（LM393でレベルシフト）</text>
-  <text x="658" y="322" class="note">D</text>
-  <text x="658" y="382" class="note">S</text>
-  <text x="612" y="338" class="note">G</text>
-  <circle cx="680" cy="215" r="3.5" class="node"/>
+  <!-- ===== LM393 ===== -->
+  <polygon points="430,250 430,410 560,330" class="chip"/>
+  <text x="446" y="326" class="lbl" font-weight="700">LM393N</text>
+  <text x="446" y="342" class="pin">U1 (1/2)</text>
+  <text x="438" y="288" class="lbl" font-weight="700">+</text>
+  <text x="438" y="378" class="lbl" font-weight="700">−</text>
+  <!-- V+ / GND leads -->
+  <line x1="500" y1="290" x2="500" y2="90" class="wire"/>
+  <circle cx="500" cy="90" r="3.5" class="node"/>
+  <text x="506" y="150" class="pin">V+(8)</text>
+  <line x1="500" y1="370" x2="500" y2="630" class="wire"/>
+  <circle cx="500" cy="630" r="3.5" class="node"/>
+  <text x="506" y="560" class="pin">GND(4)</text>
+  <!-- C1 decoupling near V+ (local ground) -->
+  <line x1="500" y1="120" x2="548" y2="120" class="wire"/>
+  <line x1="540" y1="112" x2="540" y2="128" class="comp"/>
+  <line x1="552" y1="112" x2="552" y2="128" class="comp"/>
+  <line x1="546" y1="128" x2="546" y2="150" class="wire"/>
+  <line x1="536" y1="150" x2="556" y2="150" class="gnd"/>
+  <line x1="540" y1="156" x2="552" y2="156" class="gnd"/>
+  <line x1="544" y1="162" x2="548" y2="162" class="gnd"/>
+  <text x="560" y="124" class="lbl">C1 <tspan class="val">0.1µF</tspan></text>
 
-  <!-- Solenoid L (coil) between +V and drain node -->
-  <line x1="680" y1="100" x2="680" y2="120" class="wire"/>
-  <circle cx="680" cy="100" r="3.5" class="node"/>
-  <path d="M680,120 q18,11 0,22 q18,11 0,22 q18,11 0,22 q18,11 0,22" class="comp"/>
-  <line x1="680" y1="208" x2="680" y2="215" class="wire"/>
-  <text x="660" y="158" text-anchor="end" class="lbl" font-weight="700">ソレノイドロック LE-53</text>
-  <text x="660" y="176" text-anchor="end" class="note">DC5V / 2W（≈0.4A）通電時解錠</text>
+  <!-- output (open collector) -->
+  <line x1="560" y1="330" x2="620" y2="330" class="wire"/>
+  <circle cx="620" cy="330" r="3.5" class="node"/>
+  <text x="566" y="322" class="pin">OUT(1)</text>
+  <text x="566" y="352" class="vcall">OC</text>
 
-  <!-- Flyback diode D1 parallel to the coil -->
-  <polyline points="770,100 770,168" class="wire"/>
-  <circle cx="770" cy="100" r="3.5" class="node"/>
-  <line x1="756" y1="170" x2="784" y2="170" class="comp"/>
-  <polygon points="756,198 784,198 770,172" class="fillw"/>
-  <polyline points="770,198 770,215 680,215" class="wire"/>
-  <text x="794" y="178" class="lbl" font-weight="700">D1</text>
-  <text x="794" y="194" class="note">還流ダイオード</text>
-  <text x="794" y="210" class="note">1N4007 等</text>
+  <!-- Rpu pull-up -->
+  <line x1="620" y1="90" x2="620" y2="150" class="wire"/>
+  <circle cx="620" cy="90" r="3.5" class="node"/>
+  <rect x="612" y="150" width="16" height="52" rx="2" class="comp"/>
+  <text x="632" y="182" class="lbl">Rpu <tspan class="val">1k</tspan></text>
+  <text x="632" y="198" class="note">プルアップ</text>
+  <line x1="620" y1="202" x2="620" y2="330" class="wire"/>
 
-  <!-- DC source (lock power) on the right -->
-  <polyline points="860,100 860,250" class="wire"/>
-  <circle cx="860" cy="100" r="3.5" class="node"/>
-  <line x1="842" y1="250" x2="878" y2="250" class="comp"/>
-  <line x1="850" y1="264" x2="870" y2="264" class="comp"/>
-  <line x1="842" y1="278" x2="878" y2="278" class="comp"/>
-  <line x1="850" y1="292" x2="870" y2="292" class="comp"/>
-  <polyline points="860,292 860,580" class="wire"/>
-  <circle cx="860" cy="580" r="3.5" class="node"/>
-  <text x="884" y="246" class="rail">+</text>
-  <text x="886" y="298" class="lbl">−</text>
-  <text x="840" y="440" text-anchor="middle" class="note">ロック用</text>
-  <text x="840" y="456" text-anchor="middle" class="note">DC5V</text>
+  <!-- Rg series to gate -->
+  <rect x="640" y="322" width="52" height="16" rx="2" class="comp"/>
+  <text x="642" y="316" class="lbl">Rg <tspan class="val">100Ω</tspan></text>
+  <line x1="692" y1="330" x2="730" y2="330" class="wire"/>
+  <circle cx="730" cy="330" r="3.5" class="node"/>
+  <text x="700" y="312" class="vcall">GATE ON≈4.5V / OFF 0V</text>
 
-  <!-- ground symbol -->
-  <line x1="740" y1="580" x2="740" y2="602" class="wire"/>
-  <circle cx="740" cy="580" r="3.5" class="node"/>
-  <line x1="722" y1="602" x2="758" y2="602" class="comp"/>
-  <line x1="728" y1="609" x2="752" y2="609" class="comp"/>
-  <line x1="734" y1="616" x2="746" y2="616" class="comp"/>
+  <!-- Rgs pull-down -->
+  <line x1="730" y1="330" x2="730" y2="366" class="wire"/>
+  <rect x="722" y="366" width="16" height="52" rx="2" class="comp"/>
+  <text x="742" y="398" class="lbl">Rgs <tspan class="val">10k</tspan></text>
+  <text x="742" y="414" class="note">プルダウン</text>
+  <line x1="730" y1="418" x2="730" y2="630" class="wire"/>
+  <circle cx="730" cy="630" r="3.5" class="node"/>
 
-  <!-- notes -->
-  <text x="24" y="636" class="note">① 施錠は人手。GPIO17 を HIGH で数秒だけ ON にして解錠し、その後必ず OFF（連続通電しない：NFR-08）。極性は従来どおり HIGH=解錠（lock_active_high=true）。</text>
-  <text x="24" y="656" class="note">② LM393 は 3.3V GPIO を基準電圧（≈1.6V, R1/R2）と比較する非反転レベルシフタ。GPIO HIGH→出力オープン→Rpu でゲート≈5V→Q1 ON。2SK4017 はロジックレベル品でないため 5V で確実にオンさせる。</text>
-  <text x="24" y="676" class="note">③ Rg でゲートを保護、Rgs で確実オフ。LM393 はオープンコレクタのため Rpu 必須。未使用側コンパレータは入力を固定（例: +入力=GND / −入力=+5V）して発振を防ぐ。LM393 直近に 0.1µF パスコンを置く。</text>
-  <text x="24" y="696" class="note">④ 還流ダイオード D1 必須（逆起電力から Q1 保護）。ロック用電源は Pi と分離推奨・GND は共通。</text>
-  <text x="24" y="716" class="note">⑤ LE-53＝DC5V・2W（≈0.4A, タキゲン）。突入電流が未公表のため電源は 5V/2A 以上を目安。より強い駆動が要るなら LM393 とゲートを +12V 別電源にして Vgs を上げる（ソレノイドは 5V のまま）。</text>
+  <!-- Q1 (labeled block: readable) -->
+  <line x1="730" y1="330" x2="762" y2="330" class="wire"/>
+  <rect x="762" y="302" width="60" height="56" rx="8" class="chip" fill="#ecfeff" stroke="#0891b2"/>
+  <text x="772" y="326" class="lbl" font-weight="700">Q1</text>
+  <text x="768" y="344" class="pin">2SK4017</text>
+  <text x="748" y="346" class="pin">G</text>
+  <text x="796" y="300" class="pin">D</text>
+  <text x="796" y="372" class="pin">S</text>
+  <!-- D (top) -->
+  <line x1="792" y1="302" x2="792" y2="250" class="wire"/>
+  <circle cx="792" cy="250" r="3.5" class="node"/>
+  <!-- S (bottom) -->
+  <line x1="792" y1="358" x2="792" y2="630" class="wire"/>
+  <circle cx="792" cy="630" r="3.5" class="node"/>
+
+  <!-- solenoid LE-53 -->
+  <line x1="792" y1="250" x2="845" y2="250" class="wire"/>
+  <line x1="845" y1="90" x2="845" y2="170" class="wire"/>
+  <circle cx="845" cy="90" r="3.5" class="node"/>
+  <path d="M845,170 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,188 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,206 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0 M845,224 a9,9 0 0 1 18,0 a9,9 0 0 1 -18,0" class="comp" fill="none"/>
+  <line x1="845" y1="242" x2="845" y2="250" class="wire"/>
+  <circle cx="845" cy="250" r="3.5" class="node"/>
+  <text x="872" y="196" class="lbl">LE-53</text>
+  <text x="872" y="212" class="note">電磁ロック</text>
+  <text x="872" y="228" class="vcall">0.4A @5V</text>
+
+  <!-- D1 flyback across coil -->
+  <line x1="845" y1="250" x2="905" y2="250" class="wire"/>
+  <line x1="905" y1="250" x2="905" y2="212" class="wire"/>
+  <polygon points="896,212 914,212 905,194" class="comp"/>
+  <line x1="896" y1="194" x2="914" y2="194" class="wire" stroke-width="2.5"/>
+  <line x1="905" y1="194" x2="905" y2="90" class="wire"/>
+  <circle cx="905" cy="90" r="3.5" class="node"/>
+  <text x="900" y="276" class="lbl" text-anchor="middle">D1</text>
+
+  <!-- ===== BOM / notes ===== -->
+  <rect x="20" y="656" width="900" height="58" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="32" y="674" class="note"><tspan class="lbl">部品（型番）:</tspan> U1 LM393N(DIP-8/代替NJM2903) ／ Q1 2SK4017(東芝 N-ch, TO-220F) ／ D1 1N4007(or ショットキー 1N5819) ／ C1 0.1µF 積層セラミック</text>
+  <text x="32" y="691" class="note"><tspan class="lbl">抵抗(1/4W):</tspan> Rin1,Rin2=10k ／ R1=22k ／ R2=4.3k(4.7k可) ／ Rpu=1k ／ Rg=100Ω ／ Rgs=10k</text>
+  <text x="32" y="708" class="note"><tspan class="lbl">電源保護:</tspan> 入力側に F1 ヒューズ(~1A) ＋ D2 逆接保護(1N5819) を付加（§4/§8）。未使用コンパレータ入力は +=GND / −=+5V に固定。</text>
 </svg>

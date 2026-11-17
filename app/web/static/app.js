@@ -10,12 +10,18 @@ const el = (t, props = {}, kids = []) => {
   for (const [k, v] of Object.entries(props)) {
     if (k === "class") n.className = v;
     else if (k === "html") n.innerHTML = v;
+    else if (k === "text") n.textContent = v;  // ユーザ入力を安全に表示する（XSS対策）
     else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
     else n.setAttribute(k, v);
   }
   for (const kid of [].concat(kids)) if (kid) n.append(kid);
   return n;
 };
+
+// `html:` の文字列へユーザ入力（物品名・氏名・IDm 等）を埋め込むときのHTMLエスケープ。
+// サーバ→SSE→innerHTML の経路で <img onerror=...> 等が実行されるのを防ぐ（stored XSS対策）。
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 // インラインSVGアイコン（外部フォント/画像は使わない方針）。
 const ICON = {
@@ -75,8 +81,8 @@ function statusKind(it) {
 function statusSub(it) {
   const sub = [];
   if (it.is_lent) {
-    if (it.borrower_name) sub.push(`利用者: ${it.borrower_name}`);
-    if (it.due_at) sub.push(`返却予定: <span class="num">${it.due_at}</span>`);
+    if (it.borrower_name) sub.push(`利用者: ${esc(it.borrower_name)}`);
+    if (it.due_at) sub.push(`返却予定: <span class="num">${esc(it.due_at)}</span>`);
   }
   return sub;
 }
@@ -84,8 +90,8 @@ function statusSub(it) {
 // 物品1件ぶんの状況を MD3 ステータスチップにする（待受の一覧表示で使う）。
 function itemStatusChip(it) {
   const { kind, ico } = statusKind(it);
-  const head = !it.is_lent ? `${it.name}：貸出できます`
-    : it.is_overdue ? `延滞中：${it.name}` : `貸出中：${it.name}`;
+  const head = !it.is_lent ? `${esc(it.name)}：貸出できます`
+    : it.is_overdue ? `延滞中：${esc(it.name)}` : `貸出中：${esc(it.name)}`;
   const sub = statusSub(it);
   return el("div", { class: `status ${kind}` }, [
     icon(ico, "ico"),
@@ -111,7 +117,7 @@ function heroStatus(it) {
 
 function homeContent(items, withHint) {
   const kids = [];
-  const title = items.length === 1 ? `${items[0].name} 貸出` : "物品 貸出";
+  const title = items.length === 1 ? `${esc(items[0].name)} 貸出` : "物品 貸出";
   kids.push(el("h1", { class: "headline", html: title }));
   if (items.length === 1) {
     kids.push(heroStatus(items[0]));
@@ -146,7 +152,7 @@ const RENDER = {
       el("button", {
         class: "tonal",
         onclick: () => action("choose_item", { item_id: it.item_id }),
-        html: it.location ? `${it.name}<br><small>${it.location}</small>` : it.name,
+        html: it.location ? `${esc(it.name)}<br><small>${esc(it.location)}</small>` : esc(it.name),
       })));
     screenWrap([
       el("p", { class: "title", html: "借りる物品を選んでください" }),
@@ -161,7 +167,7 @@ const RENDER = {
       el("button", {
         class: "tonal",
         onclick: () => action("choose_return", { loan_id: ln.loan_id }),
-        html: `${ln.item_name}<br><small>返却予定: <span class="num">${ln.due_at}</span></small>`,
+        html: `${esc(ln.item_name)}<br><small>返却予定: <span class="num">${esc(ln.due_at)}</span></small>`,
       })));
     screenWrap([
       el("p", { class: "title", html: "返却する物品を選んでください" }),
@@ -177,7 +183,7 @@ const RENDER = {
     const grid = el("div", { class: "grid" },
       d.choices.map(c => el("button", { class: "tonal", onclick: () => action("choose_duration", { minutes: c.min }), html: c.label })));
     screenWrap([
-      el("p", { class: "title", html: d.item_name ? `${d.item_name} の貸出時間を選んでください` : "貸出時間を選んでください" }),
+      el("p", { class: "title", html: d.item_name ? `${esc(d.item_name)} の貸出時間を選んでください` : "貸出時間を選んでください" }),
       grid,
       el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
     ]);
@@ -191,9 +197,9 @@ const RENDER = {
         el("p", { class: "display", html: "解錠しました" }),
         el("p", { class: "title", html: "扉が開いています" }),
       ]),
-      d.item_name ? el("p", { class: "title", html: d.item_name }) : null,
+      d.item_name ? el("p", { class: "title", text: d.item_name }) : null,
       el("p", { class: "body", html: msg }),
-      d.due_at ? el("p", { class: "body muted", html: `返却予定: <span class="num">${d.due_at}</span>` }) : null,
+      d.due_at ? el("p", { class: "body muted", html: `返却予定: <span class="num">${esc(d.due_at)}</span>` }) : null,
       el("p", { class: "body muted", html: "（数秒後に待機画面へ戻ります）" }),
     ]);
   },
@@ -201,8 +207,8 @@ const RENDER = {
   return_confirm(d) {
     screenWrap([
       el("p", { class: "display", html: "返却しますか？" }),
-      d.item_name ? el("p", { class: "title", html: d.item_name }) : null,
-      el("p", { class: "body muted", html: `貸出日時: <span class="num">${d.borrowed_at}</span><br>返却予定: <span class="num">${d.due_at}</span>` }),
+      d.item_name ? el("p", { class: "title", text: d.item_name }) : null,
+      el("p", { class: "body muted", html: `貸出日時: <span class="num">${esc(d.borrowed_at)}</span><br>返却予定: <span class="num">${esc(d.due_at)}</span>` }),
       el("div", { class: "row" }, [
         el("button", { class: "ok", onclick: () => action("confirm_return"), html: "返却する" }),
         el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }),
@@ -215,7 +221,7 @@ const RENDER = {
     screenWrap([
       icon("alert", "hero-ico danger"),
       el("p", { class: "display danger", html: "エラー" }),
-      el("p", { class: "title", html: d.reason || "" }),
+      el("p", { class: "title", text: d.reason || "" }),
       el("p", { class: "body muted", html: "数秒後に待機画面へ戻ります" }),
     ]);
   },
@@ -228,7 +234,7 @@ const RENDER = {
     const save = async () => {
       const r = await action("register_initial_admin", { name: name.value, employee_no: emp.value });
       toast.className = "toast " + (r.ok ? "ok" : "danger");
-      toast.innerHTML = r.message || "";
+      toast.textContent = r.message || "";
       if (r.ok) { setupDraft.name = ""; setupDraft.employee_no = ""; }
     };
     screenWrap([
@@ -236,7 +242,7 @@ const RENDER = {
       el("p", { class: "body muted", html: "管理者が未登録のため、最初の管理者を登録してください" }),
       el("div", { class: "card" }, [
         el("div", { class: "field" }, [el("label", { html: "IDm" }),
-          el("span", { html: d.idm || "（社員証をタッチ）", class: d.idm ? "" : "muted" })]),
+          el("span", { text: d.idm || "（社員証をタッチ）", class: d.idm ? "" : "muted" })]),
         el("div", { class: "field" }, [el("label", { html: "氏名" }), name]),
         el("div", { class: "field" }, [el("label", { html: "社員番号" }), emp]),
         el("button", { class: "small", onclick: save, html: "管理者として登録" }),
@@ -273,7 +279,7 @@ const RENDER = {
       : null;
     screenWrap([
       el("p", { class: "headline", html: "管理メニュー" }),
-      el("p", { class: "body muted", html: d.admin_name ? `管理者: ${d.admin_name}` : "" }),
+      el("p", { class: "body muted", html: d.admin_name ? `管理者: ${esc(d.admin_name)}` : "" }),
       lockLine,
       menu,
     ]);
@@ -286,7 +292,7 @@ const RENDER = {
     const add = async () => {
       const r = await action("add_item", { name: name.value, location: loc.value });
       toast.className = "toast " + (r.ok ? "ok" : "danger");
-      toast.innerHTML = r.message || "";
+      toast.textContent = r.message || "";
       if (r.ok) { itemDraft.name = ""; itemDraft.location = ""; }
     };
     const card = el("div", { class: "card" }, [
@@ -299,7 +305,7 @@ const RENDER = {
     const listToast = el("p", { class: "toast muted" });
     const showListResult = (r) => {
       listToast.className = "toast " + (r.ok ? "ok" : "danger");
-      listToast.innerHTML = r.message || "";
+      listToast.textContent = r.message || "";
     };
 
     const list = el("div", { class: "mlist" }, (d.items || []).map(it => {
@@ -345,13 +351,13 @@ const RENDER = {
     const save = async () => {
       const r = await action("register_member", { name: draft.name, employee_no: draft.employee_no, role: draft.role });
       toast.className = "toast " + (r.ok ? "ok" : "danger");
-      toast.innerHTML = r.message || "";
+      toast.textContent = r.message || "";
       if (r.ok) { draft.name = ""; draft.employee_no = ""; draft.role = "user"; }
     };
 
     const card = el("div", { class: "card" }, [
       el("div", { class: "field" }, [el("label", { html: "IDm" }),
-        el("span", { html: d.captured_idm || "（社員証をタッチ）", class: d.captured_idm ? "" : "muted" })]),
+        el("span", { text: d.captured_idm || "（社員証をタッチ）", class: d.captured_idm ? "" : "muted" })]),
       el("div", { class: "field" }, [el("label", { html: "氏名" }), name]),
       el("div", { class: "field" }, [el("label", { html: "社員番号" }), emp]),
       el("div", { class: "field" }, [el("label", { html: "ロール" }), roleSel]),
@@ -359,10 +365,10 @@ const RENDER = {
       toast,
     ]);
 
-    const listToast = el("p", { class: "toast muted", html: d.reissue_message || "" });
+    const listToast = el("p", { class: "toast muted", text: d.reissue_message || "" });
     const showListResult = (r) => {
       listToast.className = "toast " + (r.ok ? "ok" : "danger");
-      listToast.innerHTML = r.message || "";
+      listToast.textContent = r.message || "";
     };
 
     const list = el("div", { class: "mlist" }, d.members.map(m => {
@@ -416,7 +422,7 @@ const RENDER = {
     const run = async () => {
       const r = await action("export_report", { start: start.value, end: end.value, path: path.value });
       toast.className = "toast " + (r.ok ? "ok" : "danger");
-      toast.innerHTML = r.message || "";
+      toast.textContent = r.message || "";
     };
     adminWrap("ログ出力（CSV）", "admin_menu", [
       el("div", { class: "card" }, [
@@ -456,6 +462,6 @@ fetch("/api/meta").then(r => r.json()).then(meta => {
   bar.append(el("span", { class: "tag", html: "疑似タッチ:" }), input,
     el("button", { onclick: () => touch(input.value.trim()), html: "タッチ" }));
   for (const m of (meta.dev_members || []))
-    bar.append(el("button", { onclick: () => touch(m.idm), html: m.name }));
+    bar.append(el("button", { onclick: () => touch(m.idm), text: m.name }));
   input.addEventListener("keydown", e => { if (e.key === "Enter") touch(input.value.trim()); });
 });

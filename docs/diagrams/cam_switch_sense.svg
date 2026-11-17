@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" font-family="system-ui,'Segoe UI',sans-serif">
+  <style>
+    .wire{stroke:#334155;stroke-width:2;fill:none}
+    .brown{stroke:#92400e;stroke-width:2.5;fill:none}
+    .black{stroke:#0f172a;stroke-width:2.5;fill:none}
+    .gnd{stroke:#0f172a;stroke-width:2.5;fill:none}
+    .comp{stroke:#334155;stroke-width:2;fill:#ffffff}
+    .dash{stroke:#94a3b8;stroke-width:2;fill:none;stroke-dasharray:4 3}
+    .chip{fill:#eef2ff;stroke:#6366f1;stroke-width:2}
+    .node{fill:#334155}
+    .lbl{font-size:13.5px;font-weight:600;fill:#0f172a}
+    .val{font-size:12.5px;font-weight:700;fill:#2563eb}
+    .note{font-size:12px;fill:#475569}
+    .vcall{font-size:12px;font-weight:700;fill:#16a34a}
+    .title{font-size:17px;font-weight:700;fill:#0f172a}
+    .pin{font-size:11px;fill:#64748b}
+    .brn{fill:#92400e;font-size:13px;font-weight:700}
+  </style>
+
+  <text x="20" y="28" class="title">施錠検知回路（LE-53 カムスイッチ）: 扉の開閉・施錠状態を GPIO27 で読む ― 既定 off</text>
+  <text x="20" y="48" class="note">ドライ接点を Pi 内部プルアップで読む。3.3V のみでレベルシフト不要。施錠=接点ON(閉)=LOW ／ 解錠・扉開=HIGH。</text>
+
+  <!-- Raspberry Pi block -->
+  <rect x="40" y="110" width="172" height="190" rx="10" class="chip"/>
+  <text x="126" y="135" class="lbl" text-anchor="middle" font-weight="700">Raspberry Pi 4</text>
+  <text x="126" y="151" class="pin" text-anchor="middle">（内部 3.3V ロジック）</text>
+
+  <!-- pins -->
+  <text x="200" y="190" class="pin" text-anchor="end">3V3</text>
+  <line x1="212" y1="186" x2="258" y2="186" class="wire"/>
+  <circle cx="258" cy="186" r="3.5" class="node"/>
+  <text x="200" y="234" class="pin" text-anchor="end">GPIO27</text>
+  <line x1="212" y1="230" x2="258" y2="230" class="wire"/>
+  <circle cx="258" cy="230" r="3.5" class="node"/>
+  <text x="200" y="290" class="pin" text-anchor="end">GND</text>
+  <line x1="212" y1="286" x2="258" y2="286" class="wire"/>
+
+  <!-- internal pull-up (dashed = inside SoC) -->
+  <line x1="258" y1="186" x2="258" y2="196" class="dash"/>
+  <rect x="250" y="196" width="16" height="36" rx="2" class="dash" fill="#f8fafc"/>
+  <text x="236" y="172" class="note">内部プルアップ（pull_up=True）</text>
+  <line x1="276" y1="176" x2="262" y2="198" class="dash"/>
+
+  <!-- GPIO27 -> series R -> 茶 -> cam switch -->
+  <line x1="258" y1="230" x2="300" y2="230" class="wire"/>
+  <rect x="300" y="222" width="44" height="16" rx="2" class="comp"/>
+  <text x="300" y="214" class="note">Rs 1k(任意)</text>
+  <line x1="344" y1="230" x2="420" y2="230" class="brown"/>
+  <text x="378" y="222" class="brn">茶</text>
+
+  <!-- cam switch (SPST, open contact) -->
+  <circle cx="420" cy="230" r="4" class="node"/>
+  <line x1="420" y1="230" x2="470" y2="208" class="wire"/>
+  <circle cx="486" cy="230" r="4" class="node"/>
+  <rect x="396" y="150" width="150" height="34" rx="6" fill="#fff7ed" stroke="#fb923c"/>
+  <text x="471" y="166" class="lbl" text-anchor="middle">LE-53 カムスイッチ</text>
+  <text x="471" y="180" class="pin" text-anchor="middle">施錠でON＝接点閉</text>
+
+  <!-- 黒 -> GND -->
+  <line x1="486" y1="230" x2="486" y2="340" class="black"/>
+  <text x="496" y="300" class="brn" fill="#0f172a">黒</text>
+
+  <!-- GND rail -->
+  <line x1="258" y1="286" x2="258" y2="340" class="wire"/>
+  <line x1="258" y1="340" x2="486" y2="340" class="gnd"/>
+  <circle cx="258" cy="340" r="3.5" class="node"/>
+  <circle cx="486" cy="340" r="3.5" class="node"/>
+  <line x1="364" y1="340" x2="364" y2="352" class="gnd"/>
+  <line x1="352" y1="352" x2="376" y2="352" class="gnd"/>
+  <line x1="356" y1="357" x2="372" y2="357" class="gnd"/>
+  <line x1="360" y1="362" x2="368" y2="362" class="gnd"/>
+
+  <!-- truth table -->
+  <rect x="556" y="120" width="190" height="118" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="566" y="140" class="lbl">読み取り表</text>
+  <line x1="566" y1="148" x2="736" y2="148" class="dash"/>
+  <text x="566" y="168" class="note">施錠</text>
+  <text x="626" y="168" class="note">接点 閉</text>
+  <text x="690" y="168" class="vcall">LOW</text>
+  <text x="566" y="190" class="note">解錠/扉開</text>
+  <text x="626" y="190" class="note">接点 開</text>
+  <text x="690" y="190" class="vcall">HIGH</text>
+  <line x1="566" y1="200" x2="736" y2="200" class="dash"/>
+  <text x="566" y="220" class="note">施錠/未施錠を管理画面に表示。</text>
+
+  <!-- notes -->
+  <rect x="20" y="372" width="726" height="58" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="32" y="390" class="note"><tspan class="lbl">①</tspan> ドライ接点につき電圧は最大 3.3V、レベルシフト不要。<tspan class="brn">茶</tspan>=接点 / <tspan fill="#0f172a" font-weight="700">黒</tspan>=GND は推定 ― テスターで導通・NO/NC を要確認。</text>
+  <text x="32" y="407" class="note"><tspan class="lbl">②</tspan> チャタリングは cam_switch_bounce_ms=50 でソフトデバウンス。Rs(1k)＋任意で 0.1µF を足せばハード的にも鈍らせられる。</text>
+  <text x="32" y="424" class="note"><tspan class="lbl">③</tspan> config: cam_switch=off/auto/mock/real（既定 off）, cam_switch_gpio_pin=27, cam_switch_active_low=true。実装 app/devices/cam_switch.py。</text>
+</svg>
