@@ -446,6 +446,67 @@ select { cursor: pointer; }
 .unlock-banner .unlock-ico svg { width: 88px; height: 88px; display: block; }
 
 /* ---------------------------------------------------------------------
+   5-2) 7インチタッチモニター向けコンパクトレイアウト
+   対象: Raspberry Pi 公式 7"（800×480）や汎用 7"（1024×600）。
+   縦 640px 以下で発動（1280×800 など大画面の見た目はそのまま）。
+   目的: 操作画面（待受/選択/確認/解錠/エラー）が縦スクロール無しで収まり、
+   かつタッチターゲットは 48px 以上を保つこと。
+   --------------------------------------------------------------------- */
+@media (max-height: 640px) {
+  .screen { padding: 14px; gap: 10px; }
+
+  /* タイプスケールを圧縮（階層は太さ・色で維持） */
+  .display, .big      { font-size: 34px; line-height: 1.05; }
+  .headline, h1       { font-size: 25px; line-height: 1.1; }
+  .title, .h2         { font-size: 19px; line-height: 1.2; }
+  .body               { font-size: 16px; line-height: 1.35; }
+
+  /* ボタン: タッチ下限48pxを保ちつつ縮める */
+  button       { font-size: 19px; min-height: 52px; padding: 0 22px; min-width: 120px; }
+  button.small { font-size: 14px; min-height: 46px; padding: 0 12px; }
+  button.text  { padding: 0 14px; }
+  button.text.back svg { width: 22px; height: 22px; }
+
+  /* 時間/物品選択グリッド: 3列のまま高さと余白を圧縮 */
+  .grid { gap: 10px; width: min(760px, 96%); }
+  .grid button { min-height: 60px; font-size: 20px; }
+  .grid button small { font-size: 13px; margin-top: 2px; }
+  .row { gap: 10px; }
+
+  /* 待受のステータスチップ: 小さく、件数が多ければ内部スクロール */
+  .statuslist { gap: 10px; width: min(680px, 96%); max-height: 62vh; overflow-y: auto; }
+  .status { gap: 12px; padding: 12px 16px; border-radius: var(--radius-md); }
+  .status .ico { width: 30px; height: 30px; }
+  .status .ico svg { width: 28px; height: 28px; }
+  .status .st-head { font-size: 20px; }
+  .status .st-sub  { font-size: 15px; }
+
+  .hero-ico svg { width: 56px; height: 56px; }
+  .hint { font-size: 20px; margin-top: 4px; }
+  .hint .ico svg { width: 24px; height: 24px; }
+
+  /* カード/入力: 余白を詰める */
+  .card { padding: 18px; gap: 10px; width: min(560px, 96%); }
+  .field { gap: 4px; margin: 2px 0; }
+  .field label { font-size: 13px; }
+  input, select { font-size: 17px; min-height: 46px; padding: 9px 12px; }
+
+  /* 解錠バナー（最重要表示）: 画面に収めつつ目立たせる */
+  .unlock-banner { padding: 18px 28px; gap: 8px; width: min(640px, 96%); }
+  .unlock-banner .unlock-ico svg { width: 56px; height: 56px; }
+
+  /* 管理画面: アプリバー/本文を圧縮（本文はもともとスクロール可） */
+  .appbar { padding: 10px 16px; gap: 12px; }
+  .appbar .bar-title { font-size: 20px; }
+  .appbar .bar-sub { font-size: 14px; }
+  .admin-body { padding: 14px; gap: 12px; }
+  .section-label { font-size: 16px; }
+  .mlist .item { padding: 8px 12px; min-height: 56px; font-size: 15px; }
+  .mlist .item input { min-height: 44px; width: 120px; flex-basis: 120px; }
+  .mlist .item > .state { min-width: 92px; }
+}
+
+/* ---------------------------------------------------------------------
    6) devbar（開発用・モック時のみ。新デザインと衝突しない簡素な見た目）
    --------------------------------------------------------------------- */
 #devbar {
