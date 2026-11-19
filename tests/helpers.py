@@ -12,7 +12,9 @@ from app.services.clock import FixedClock
 DEFAULT_NOW = datetime(2026, 11, 8, 9, 0, 0)
 
 
-def make_ctx(clock: FixedClock | None = None, lock_sensor=None, **cfg_overrides) -> AppContext:
+def make_ctx(
+    clock: FixedClock | None = None, lock_sensor=None, notifier=None, **cfg_overrides
+) -> AppContext:
     """モックデバイス＋インメモリDBの AppContext を作る。"""
     clock = clock or FixedClock(DEFAULT_NOW)
     cfg = Config(db_path=":memory:", unlock_seconds=0.01, **cfg_overrides)
@@ -23,4 +25,5 @@ def make_ctx(clock: FixedClock | None = None, lock_sensor=None, **cfg_overrides)
         card_reader=MockCardReader(),
         lock=MockLock(unlock_seconds=0.01),
         lock_sensor=lock_sensor,
+        notifier=notifier,
     )

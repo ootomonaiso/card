@@ -20,11 +20,13 @@
 
   "lock_gpio_pin": 17,
   "lock_active_high": true,
+  "locks": [],
 
   "cam_switch": "off",
   "cam_switch_gpio_pin": 27,
   "cam_switch_active_low": true,
   "cam_switch_bounce_ms": 50,
+  "cam_switch_fail_streak_threshold": 5,
 
   "card_reader": "auto",
   "lock": "auto",
@@ -32,5 +34,17 @@
   "log_dir": "logs",
   "log_level": "INFO",
   "log_max_bytes": 1000000,
-  "log_backup_count": 7
+  "log_backup_count": 7,
+
+  "theme": "dark",
+
+  "custom_duration_min_minutes": 1,
+  "custom_duration_max_minutes": 1440,
+
+  "return_confirm_hold_seconds": 3,
+
+  "teams_webhook_url": "",
+  "teams_notify_overdue": true,
+  "teams_notify_errors": true,
+  "teams_notify_routine": false
 }

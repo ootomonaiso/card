@@ -12,6 +12,7 @@ def _row_to_item(row: sqlite3.Row) -> Item:
         name=row["name"],
         location=row["location"],
         is_active=bool(row["is_active"]),
+        category=row["category"],
     )
 
 
@@ -58,18 +59,20 @@ class ItemRepository:
             raise RuntimeError("有効な物品が登録されていません")
         return _row_to_item(row)
 
-    def insert(self, name: str, location: str | None) -> int:
+    def insert(self, name: str, location: str | None, category: str | None = None) -> int:
         cur = self.conn.execute(
-            "INSERT INTO ITEM(name, location, is_active) VALUES(?, ?, 1)",
-            (name, location),
+            "INSERT INTO ITEM(name, location, category, is_active) VALUES(?, ?, ?, 1)",
+            (name, location, category),
         )
         self.conn.commit()
         return int(cur.lastrowid)
 
-    def update(self, item_id: int, name: str, location: str | None) -> None:
+    def update(
+        self, item_id: int, name: str, location: str | None, category: str | None = None
+    ) -> None:
         self.conn.execute(
-            "UPDATE ITEM SET name = ?, location = ? WHERE item_id = ?",
-            (name, location, item_id),
+            "UPDATE ITEM SET name = ?, location = ?, category = ? WHERE item_id = ?",
+            (name, location, category, item_id),
         )
         self.conn.commit()
 

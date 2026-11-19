@@ -7,8 +7,13 @@
 
 /* ---------------------------------------------------------------------
    1) デザイントークン（MD3 の色役割）
-   基調はダークスキーム。:root[data-theme="light"] で将来ライト切替可能。
+   基調はダークスキーム。:root[data-theme="light"] は管理者がconfig.jsonの
+   theme で切り替える（エンドユーザー向けトグルは設けない。app.js が起動時に
+   /api/meta の theme を読み、<html> に data-theme 属性を付与する）。
    色は本文テキストで WCAG コントラスト比 4.5:1 以上を確保する。
+   色覚シミュレーション確認済み（2026-11-19）: 空き(緑)/貸出中(amber)/延滞(赤)は
+   いずれもアイコン＋テキストを併用しており、色だけに依存していない。
+   amber と赤は2型・1型色覚でも明度差で区別可能（暗く沈んだ赤 vs 明るい黄色）。
    --------------------------------------------------------------------- */
 :root {
   /* サーフェス階層 */
@@ -70,7 +75,7 @@
   color-scheme: dark;
 }
 
-/* 将来のライト切替用（キオスク既定はダーク）。トグルで data-theme を付与する。 */
+/* ライトテーマ（既定はダーク）。管理者が config.json の theme で切り替える。 */
 :root[data-theme="light"] {
   --md-surface:                 #fbf8fd;
   --md-surface-container-lowest: #ffffff;
@@ -238,6 +243,29 @@ button.ok {
   background: var(--md-success-container);
   color: var(--md-on-success-container);
 }
+/* 返却の長押し確認ボタン（誤操作防止）。hold-fill が左から埋まっていく。 */
+button.hold-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+button.hold-btn .hold-label {
+  position: relative;
+  z-index: 1;
+}
+button.hold-btn .hold-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: var(--md-on-success-container);
+  opacity: .28;
+  z-index: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* 連続アニメーションではなく、離散的な段階で塗りが進むようにする（JS側で制御）。 */
+  button.hold-btn .hold-fill { transition: none; }
+}
 /* 注意/危険（無効化など） */
 button.warn {
   background: var(--md-error-container);
@@ -401,6 +429,9 @@ select { cursor: pointer; }
 /* 画面見出し（カード系の上部） */
 .pulse { animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) {
+  .pulse { animation: none; }
+}
 
 /* --- 管理画面のアプリバー --- */
 .appbar {
@@ -463,7 +494,7 @@ select { cursor: pointer; }
 
   /* ボタン: タッチ下限48pxを保ちつつ縮める */
   button       { font-size: 19px; min-height: 52px; padding: 0 22px; min-width: 120px; }
-  button.small { font-size: 14px; min-height: 46px; padding: 0 12px; }
+  button.small { font-size: 14px; min-height: 48px; padding: 0 12px; }
   button.text  { padding: 0 14px; }
   button.text.back svg { width: 22px; height: 22px; }
 

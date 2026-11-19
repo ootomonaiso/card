@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS ITEM (
   item_id   INTEGER PRIMARY KEY AUTOINCREMENT,
   name      TEXT NOT NULL,
   location  TEXT,
+  category  TEXT,
   is_active INTEGER NOT NULL DEFAULT 1
 );
 

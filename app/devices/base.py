@@ -35,6 +35,40 @@ class LockController(Protocol):
         ...
 
 
+class LockRegistry:
+    """item_id → LockController のマッピング（複数ロック対応、ソフト設計のみ）。
+
+    現行ハードは1チャンネルのみだが、将来ロッカーを増設して物品ごとに錠を分ける場合に
+    備え、item_id から対応する LockController を引けるようにしておく。item_ids を
+    指定しないスロットは「どの item_ids にも明示的に紐づかない物品」のデフォルト受け皿。
+    """
+
+    def __init__(
+        self,
+        controllers_by_slot: dict[str, "LockController"],
+        item_to_slot: dict[int, str],
+        default_slot: str,
+    ) -> None:
+        self._controllers = controllers_by_slot
+        self._item_to_slot = item_to_slot
+        self._default_slot = default_slot
+
+    @classmethod
+    def single(cls, lock: "LockController", slot: str = "default") -> "LockRegistry":
+        """単一ロックのみの構成（現行ハード・既存テストの既定）を素早く組み立てる。"""
+        return cls({slot: lock}, {}, slot)
+
+    def for_item(self, item_id: int) -> "LockController":
+        slot = self._item_to_slot.get(item_id, self._default_slot)
+        return self._controllers[slot]
+
+    def close(self) -> None:
+        for ctl in set(self._controllers.values()):
+            close = getattr(ctl, "close", None)
+            if callable(close):
+                close()
+
+
 class LockSensor(Protocol):
     """施錠検知センサ（LE-53 のカムスイッチ：09 §5-1）。
 

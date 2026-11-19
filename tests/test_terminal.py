@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import unittest
 from datetime import datetime
+from unittest.mock import MagicMock
 
 from app.services.clock import FixedClock
 from app.web.terminal import Terminal
@@ -44,27 +45,43 @@ class TerminalFlowTest(unittest.TestCase):
         self.t.on_card("NOPE")
         self.assertEqual(self.screen, "error")
         self.assertIn("登録されていません", self.last["data"]["reason"])
+        self.assertEqual(self.last["data"]["context"], "auth")
 
     def test_borrow_flow(self):
         self.t.on_card("USER1")
         self.assertEqual(self.screen, "borrow_time")
         self.t.choose_duration(60)
+        self.assertEqual(self.screen, "borrow_confirm")
+        self.t.confirm_borrow()
         self.assertEqual(self.screen, "unlock")
         self.assertEqual(self.last["data"]["mode"], "borrow")
-        self.assertEqual(self.ctx.lock.unlock_count, 1)
+        item_id = self.ctx.loans.status_list()[0].item_id
+        self.assertEqual(self.ctx.lock.for_item(item_id).unlock_count, 1)
         self.assertTrue(self.ctx.loans.status_list()[0].is_lent)
 
     def test_other_user_blocked_while_lent(self):
-        self.t.on_card("USER1"); self.t.choose_duration(60)
+        self.t.on_card("USER1"); self.t.choose_duration(60); self.t.confirm_borrow()
         self.t.go_standby()
         self.t.on_card("USER2")
         self.assertEqual(self.screen, "error")
+        self.assertEqual(self.last["data"]["context"], "no_items")
+
+    def test_hardware_failure_context_on_borrow(self):
+        from app.devices.base import LockRegistry
+        from app.devices.mock import MockLock
+        self.ctx.loans.lock = LockRegistry.single(MockLock(fail=True))
+        self.t.on_card("USER1")
+        self.t.choose_duration(60)
+        self.t.confirm_borrow()
+        self.assertEqual(self.screen, "error")
+        self.assertEqual(self.last["data"]["context"], "hardware")
 
     def test_return_flow(self):
-        self.t.on_card("USER1"); self.t.choose_duration(60)
+        self.t.on_card("USER1"); self.t.choose_duration(60); self.t.confirm_borrow()
         self.t.go_standby()
         self.t.on_card("USER1")
         self.assertEqual(self.screen, "return_confirm")
+        self.assertEqual(self.last["data"]["hold_seconds"], self.ctx.cfg.return_confirm_hold_seconds)
         self.t.confirm_return()
         self.assertEqual(self.screen, "unlock")
         self.assertEqual(self.last["data"]["mode"], "return")
@@ -93,6 +110,7 @@ class TerminalFlowTest(unittest.TestCase):
         self.t.on_card("ADMIN1")
         self.t.admin_self_borrow()
         self.t.choose_duration(60)
+        self.t.confirm_borrow()
         self.assertTrue(self.ctx.loans.status_list()[0].is_lent)
         # 再タッチ → 管理メニュー（can_return つき）
         self.t.go_standby()
@@ -126,11 +144,40 @@ class TerminalFlowTest(unittest.TestCase):
         self.assertEqual(self.ctx.member_repo.get(uid).is_active, before)  # 状態は変わらない
 
     def test_standby_shows_borrower(self):
-        self.t.on_card("USER1"); self.t.choose_duration(60)
+        self.t.on_card("USER1"); self.t.choose_duration(60); self.t.confirm_borrow()
         self.t.go_standby()
         item = self.last["data"]["items"][0]
         self.assertTrue(item["is_lent"])
         self.assertEqual(item["borrower_name"], "山田 太郎")
+
+
+class OverdueNotificationTest(unittest.TestCase):
+    """延滞を検知したら通知し、同じ貸出には重複通知しない（Teams Webhook連携）。"""
+
+    def setUp(self):
+        self.clock = FixedClock(datetime(2026, 11, 8, 9, 0, 0))
+        self.notifier = MagicMock()
+        self.ctx = make_ctx(
+            self.clock, notifier=self.notifier,
+            result_screen_seconds=999, idle_timeout_seconds=999,
+        )
+        self.item_id = self.ctx.item_repo.default_item().item_id
+        self.taro = self.ctx.members.register("AA11", "100234", "山田 太郎", "user")
+        self.t = Terminal(self.ctx)
+        self.t.on_change = lambda s: None
+        self.t.go_standby()
+
+    def tearDown(self):
+        self.t.shutdown()
+
+    def test_notifies_once_when_overdue_detected(self):
+        self.ctx.loans.borrow(self.taro, self.item_id, 60)
+        self.notifier.reset_mock()  # borrow成功時の notify_routine 呼び出し分を無視する
+        self.clock.set(datetime(2026, 11, 8, 10, 1, 0))  # 返却予定(10:00)を過ぎる
+        self.t._scan_overdue()
+        self.notifier.notify_overdue.assert_called_once()
+        self.t._scan_overdue()  # 2回目は重複通知しない
+        self.notifier.notify_overdue.assert_called_once()
 
 
 class MultiItemTerminalTest(unittest.TestCase):
@@ -170,11 +217,20 @@ class MultiItemTerminalTest(unittest.TestCase):
         self.assertEqual(self.screen, "borrow_time")
         self.assertEqual(self.last["data"]["item_name"], "予備カメラ")
         self.t.choose_duration(60)
+        self.assertEqual(self.screen, "borrow_confirm")
+        self.t.confirm_borrow()
         self.assertEqual(self.screen, "unlock")
         # 選んだ物品だけが貸出中になる
         by_id = {s.item_id: s for s in self.ctx.loans.status_list()}
         self.assertTrue(by_id[self.item2].is_lent)
         self.assertFalse(by_id[self.item1].is_lent)
+
+    def test_choose_item_invalid_gets_multi_item_context(self):
+        self.t.on_card("USER1")
+        self.assertEqual(self.screen, "borrow_item")
+        self.t.choose_item(9999)  # 存在しない物品ID
+        self.assertEqual(self.screen, "error")
+        self.assertEqual(self.last["data"]["context"], "multi_item")
 
     def test_borrow_skips_selection_when_single_free(self):
         # 片方を貸出中にすると空きは1件 → 物品選択を飛ばして時間選択へ直行
@@ -222,6 +278,8 @@ class MultiItemTerminalTest(unittest.TestCase):
         self.t.goto_borrow()          # return_confirm → 正当に borrow_time へ
         self.assertEqual(self.screen, "borrow_time")
         self.t.choose_duration(60)
+        self.assertEqual(self.screen, "borrow_confirm")
+        self.t.confirm_borrow()
         self.assertEqual(self.screen, "unlock")  # 解錠中（auto_returnタイマ付き）
         self.t.goto_borrow()          # unlock からの goto_borrow は無視される
         self.assertEqual(self.screen, "unlock")
@@ -476,7 +534,7 @@ class RequireTapTest(unittest.TestCase):
     def test_returns_to_attract_as_home(self):
         # 使い終わって go_standby すると attract（ホーム）に戻る
         t = self._term(True)
-        t.start(); t.on_card("USER1"); t.choose_duration(60)
+        t.start(); t.on_card("USER1"); t.choose_duration(60); t.confirm_borrow()
         t.go_standby()
         self.assertEqual(t.screen, "attract")
 

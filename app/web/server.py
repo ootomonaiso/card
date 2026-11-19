@@ -107,7 +107,11 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _meta(self) -> dict:
         t = self.server.terminal
-        data = {"item_name": self.server.ctx.cfg.item_name, "mock": self.server.is_mock}
+        data = {
+            "item_name": self.server.ctx.cfg.item_name,
+            "mock": self.server.is_mock,
+            "theme": self.server.ctx.cfg.theme,
+        }
         if self.server.is_mock:
             with self.server.ctx.db_lock:
                 members = self.server.ctx.members.list_all()
@@ -176,6 +180,8 @@ class _Handler(BaseHTTPRequestHandler):
             t.choose_item(int(body["item_id"]))
         elif action == "choose_duration":
             t.choose_duration(int(body["minutes"]))
+        elif action == "confirm_borrow":
+            t.confirm_borrow()
         elif action == "choose_return":
             t.choose_return(int(body["loan_id"]))
         elif action == "goto_borrow":
@@ -197,10 +203,10 @@ class _Handler(BaseHTTPRequestHandler):
         elif action == "admin_self_borrow":
             t.admin_self_borrow()
         elif action == "add_item":
-            return t.add_item(body.get("name", ""), body.get("location", ""))
+            return t.add_item(body.get("name", ""), body.get("location", ""), body.get("category", ""))
         elif action == "update_item":
             return t.update_item(int(body["item_id"]), body.get("name", ""),
-                                 body.get("location", ""))
+                                 body.get("location", ""), body.get("category", ""))
         elif action == "set_item_active":
             return t.set_item_active(int(body["item_id"]), bool(body["active"]))
         elif action == "register_member":

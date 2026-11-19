@@ -9,13 +9,14 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from app.config import Config
-from app.devices.base import LockController, LockError
+from app.devices.base import LockError, LockRegistry
 from app.domain.models import Item, Loan, Member
 from app.log import audit, get_logger
 from app.repository.items import ItemRepository
 from app.repository.loans import LoanRepository
 from app.repository.members import MemberRepository
 from app.services.clock import Clock, from_iso, to_iso
+from app.services.notify import TeamsNotifier
 
 _log = get_logger("loan")
 
@@ -30,6 +31,7 @@ class ItemStatus:
     item_id: int
     name: str
     location: str | None
+    category: str | None
     is_lent: bool
     borrower_name: str | None
     borrower_employee_no: str | None
@@ -46,7 +48,8 @@ class LoanService:
         members: MemberRepository,
         items: ItemRepository,
         loans: LoanRepository,
-        lock: LockController,
+        lock: LockRegistry,
+        notifier: TeamsNotifier | None = None,
     ) -> None:
         self.cfg = cfg
         self.clock = clock
@@ -54,6 +57,7 @@ class LoanService:
         self.items = items
         self.loans = loans
         self.lock = lock
+        self.notifier = notifier or TeamsNotifier("")
 
     # ---- 状況（FR-04 / FR-09） ----
     def status_list(self) -> list[ItemStatus]:
@@ -70,6 +74,7 @@ class LoanService:
             if open_loan is None:
                 result.append(ItemStatus(
                     item_id=item.item_id, name=item.name, location=item.location,
+                    category=item.category,
                     is_lent=False, borrower_name=None, borrower_employee_no=None,
                     due_at=None, is_overdue=False, open_loan=None,
                 ))
@@ -77,6 +82,7 @@ class LoanService:
             borrower = self.members.get(open_loan.member_id)
             result.append(ItemStatus(
                 item_id=item.item_id, name=item.name, location=item.location,
+                category=item.category,
                 is_lent=True,
                 borrower_name=borrower.name if borrower else None,
                 borrower_employee_no=borrower.employee_no if borrower else None,
@@ -92,16 +98,23 @@ class LoanService:
         return [it for it in self.items.list_active() if it.item_id not in open_ids]
 
     # ---- 貸出（FR-02） ----
+    def is_valid_duration(self, duration_min: int) -> bool:
+        """プリセット（duration_choices_min）またはカスタム範囲内の分数か。"""
+        is_preset = duration_min in self.cfg.duration_choices_min
+        is_custom_in_range = (
+            self.cfg.custom_duration_min_minutes <= duration_min <= self.cfg.custom_duration_max_minutes
+        )
+        return is_preset or is_custom_in_range
+
     def borrow(self, member: Member, item_id: int, duration_min: int) -> Loan:
-        if duration_min not in self.cfg.duration_choices_min:
+        if not self.is_valid_duration(duration_min):
             raise LoanError(f"不正な貸出時間です: {duration_min}")
         item = self.items.get(item_id)
         if item is None or not item.is_active:
             raise LoanError("指定された物品は利用できません")
         # 物品ごとに錠1本（CON-3）。空きでなければ貸出不可。
-        # 現状は錠が1ch（全物品共用）だが、将来ロッカーを増設して物品ごとに
-        # 錠を分ける場合は factory で item_id→LockController を引けるようにし、
-        # ここで item に対応する錠を取得して解錠する想定（デバイス層は今回不改造）。
+        # 錠は LockRegistry.for_item() で item_id→LockController を引く
+        # （既定は全物品で1チャンネル共有、複数ロックは config.locks で明示設定）。
         if self.loans.count_open(item.item_id) > 0:
             raise LoanError("貸出中のため借りられません")
 
@@ -112,9 +125,10 @@ class LoanService:
         # ハード故障時は記録を残さず失敗させ、「貸出中なのに扉が開いていない」
         # 不整合を防ぐ（③ハード故障の検知と表示）。
         try:
-            self.lock.unlock()  # FR-05 解錠
+            self.lock.for_item(item.item_id).unlock()  # FR-05 解錠
         except LockError as e:
             _log.error("解錠失敗（貸出） member_id=%s: %s", member.member_id, e)
+            self.notifier.notify_error(f"貸出時の解錠に失敗しました（{item.name}）: {e}")
             raise LoanError("解錠に失敗しました。係員にお知らせください") from e
 
         try:
@@ -134,6 +148,7 @@ class LoanService:
             "貸出 loan_id=%s member_id=%s name=%s item=%s duration_min=%s due=%s",
             loan_id, member.member_id, member.name, item.name, duration_min, to_iso(due),
         )
+        self.notifier.notify_routine("borrow", item.name, member.name)
         return Loan(
             loan_id=loan_id,
             member_id=member.member_id,
@@ -162,10 +177,14 @@ class LoanService:
         now = self.clock.now()
         # 返却も先に解錠する。扉が開かなければ物品を戻せないため、
         # 解錠に失敗したら返却扱いにしない（貸出中のまま）。
+        item = self.items.get(loan.item_id)
         try:
-            self.lock.unlock()  # FR-05 解錠
+            self.lock.for_item(loan.item_id).unlock()  # FR-05 解錠
         except LockError as e:
             _log.error("解錠失敗（返却） loan_id=%s: %s", loan.loan_id, e)
+            self.notifier.notify_error(
+                f"返却時の解錠に失敗しました（{item.name if item else loan.item_id}）: {e}"
+            )
             raise LoanError("解錠に失敗しました。係員にお知らせください") from e
         updated = self.loans.mark_returned(loan.loan_id, to_iso(now))
         if updated == 0:
@@ -174,6 +193,10 @@ class LoanService:
             _log.warning("返却記録なし（既に返却済み） loan_id=%s", loan.loan_id)
             audit().info("返却スキップ（既に返却済み） loan_id=%s", loan.loan_id)
             return
+        member = self.members.get(loan.member_id)
+        self.notifier.notify_routine(
+            "return", item.name if item else "", member.name if member else ""
+        )
         audit().info(
             "返却 loan_id=%s member_id=%s returned_at=%s",
             loan.loan_id, loan.member_id, to_iso(now),

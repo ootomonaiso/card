@@ -28,6 +28,7 @@ class Item:
     name: str
     location: str | None
     is_active: bool
+    category: str | None = None
 
 
 @dataclass(frozen=True)

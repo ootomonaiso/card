@@ -27,30 +27,39 @@ class ItemService:
                 "item_id": it.item_id,
                 "name": it.name,
                 "location": it.location or "",
+                "category": it.category or "",
                 "is_active": it.is_active,
                 "is_lent": it.item_id in open_ids,
             }
             for it in self.items.list_all()
         ]
 
-    def add_item(self, name: str, location: str) -> int:
+    def add_item(self, name: str, location: str, category: str = "") -> int:
         name = (name or "").strip()
         location = (location or "").strip()
+        category = (category or "").strip()
         if not name:
             raise ItemError("物品名を入力してください")
-        item_id = self.items.insert(name, location or None)
-        audit().info("物品追加 item_id=%s name=%s location=%s", item_id, name, location)
+        item_id = self.items.insert(name, location or None, category or None)
+        audit().info(
+            "物品追加 item_id=%s name=%s location=%s category=%s",
+            item_id, name, location, category,
+        )
         return item_id
 
-    def update_item(self, item_id: int, name: str, location: str) -> None:
+    def update_item(self, item_id: int, name: str, location: str, category: str = "") -> None:
         name = (name or "").strip()
         location = (location or "").strip()
+        category = (category or "").strip()
         if not name:
             raise ItemError("物品名を入力してください")
         if self.items.get(item_id) is None:
             raise ItemError("物品が見つかりません")
-        self.items.update(item_id, name, location or None)
-        audit().info("物品編集 item_id=%s name=%s location=%s", item_id, name, location)
+        self.items.update(item_id, name, location or None, category or None)
+        audit().info(
+            "物品編集 item_id=%s name=%s location=%s category=%s",
+            item_id, name, location, category,
+        )
 
     def deactivate_item(self, item_id: int) -> None:
         item = self.items.get(item_id)

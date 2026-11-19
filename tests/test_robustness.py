@@ -5,6 +5,7 @@ import sqlite3
 import unittest
 
 from app.config import Config, ConfigError
+from app.devices.base import LockRegistry
 from app.devices.mock import MockLock
 from app.services.clock import to_iso
 from app.services.loan import LoanError
@@ -30,6 +31,21 @@ class ConfigValidationTest(unittest.TestCase):
     def test_bad_device_mode_rejected(self):
         with self.assertRaises(ConfigError):
             Config(card_reader="??").validate()
+
+    def test_bad_theme_rejected(self):
+        with self.assertRaises(ConfigError):
+            Config(theme="blue").validate()
+
+    def test_custom_duration_bounds_validated(self):
+        with self.assertRaises(ConfigError):
+            Config(custom_duration_min_minutes=100, custom_duration_max_minutes=10).validate()
+
+    def test_locks_duplicate_pin_rejected(self):
+        with self.assertRaises(ConfigError):
+            Config(locks=[
+                {"slot": "a", "gpio_pin": 17, "active_high": True, "item_ids": []},
+                {"slot": "b", "gpio_pin": 17, "active_high": True, "item_ids": [1]},
+            ]).validate()
 
 
 class OpenLoanInvariantTest(unittest.TestCase):
@@ -63,7 +79,7 @@ class LockFailureTest(unittest.TestCase):
 
     def setUp(self):
         self.ctx = make_ctx()
-        self.ctx.loans.lock = MockLock(fail=True)  # 解錠失敗を模擬
+        self.ctx.loans.lock = LockRegistry.single(MockLock(fail=True))  # 解錠失敗を模擬
         self.item_id = self.ctx.item_repo.default_item().item_id
         self.taro = self.ctx.members.register("AA11", "100234", "山田 太郎", "user")
 
@@ -78,11 +94,11 @@ class LockFailureTest(unittest.TestCase):
 
     def test_return_fails_keeps_loan_open(self):
         # まず正常に貸出（解錠成功するロックに戻す）
-        self.ctx.loans.lock = MockLock()
+        self.ctx.loans.lock = LockRegistry.single(MockLock())
         self.ctx.loans.borrow(self.taro, self.item_id, 60)
         loan = self.ctx.loans.find_returnable_loans(self.taro)[0]
         # 返却時に解錠失敗 → 返却扱いにしない
-        self.ctx.loans.lock = MockLock(fail=True)
+        self.ctx.loans.lock = LockRegistry.single(MockLock(fail=True))
         with self.assertRaises(LoanError):
             self.ctx.loans.return_loan(loan)
         self.assertTrue(self._is_lent())

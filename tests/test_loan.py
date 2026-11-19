@@ -24,7 +24,7 @@ class BorrowReturnTest(unittest.TestCase):
         # FR-02：貸出で due_at = borrowed_at + duration
         loan = self.ctx.loans.borrow(self.taro, self.item_id, 60)
         self.assertEqual(loan.due_at, "2026-11-08 10:00:00")
-        self.assertEqual(self.ctx.lock.unlock_count, 1)  # FR-05 解錠
+        self.assertEqual(self.ctx.lock.for_item(self.item_id).unlock_count, 1)  # FR-05 解錠
         st = self._status()
         self.assertTrue(st.is_lent)
         self.assertEqual(st.borrower_name, "山田 太郎")
@@ -36,8 +36,21 @@ class BorrowReturnTest(unittest.TestCase):
             self.ctx.loans.borrow(self.hanako, self.item_id, 30)
 
     def test_invalid_duration_rejected(self):
+        # 45分はプリセットにはないが、既定のカスタム範囲(1-1440分)には収まるため許可される。
+        # カスタム範囲外（例: 範囲の上限超え）だけが不正として拒否される。
         with self.assertRaises(LoanError):
-            self.ctx.loans.borrow(self.taro, self.item_id, 45)
+            self.ctx.loans.borrow(self.taro, self.item_id, 999999)
+
+    def test_custom_duration_within_range_allowed(self):
+        # プリセット外でもカスタム範囲内（端末での分単位フリー入力）なら借用できる。
+        loan = self.ctx.loans.borrow(self.taro, self.item_id, 45)
+        self.assertEqual(loan.duration_min, 45)
+
+    def test_custom_duration_out_of_range_rejected(self):
+        with self.assertRaises(LoanError):
+            self.ctx.loans.borrow(self.taro, self.item_id, 0)
+        with self.assertRaises(LoanError):
+            self.ctx.loans.borrow(self.taro, self.item_id, 1441)
 
     def test_borrow_unknown_item_rejected(self):
         with self.assertRaises(LoanError):

@@ -37,8 +37,15 @@ class Config:
     require_tap_to_start: bool = False
 
     # ハードウェア（09_ハードウェア設計書）
+    # lock_gpio_pin / lock_active_high は後方互換のフォールバック。
+    # locks を指定しない（既定）場合、この2値から単一スロットの locks が組み立てられ、
+    # 現行の「全物品で1ロック共有」動作と完全に同じになる。
     lock_gpio_pin: int = 17
     lock_active_high: bool = True
+    # 複数ロック対応（ソフト設計）。各要素: slot名, gpio_pin, active_high, item_ids（紐づく物品ID。
+    # 空リストは「どの item_ids にも明示的に紐づかない物品のデフォルト受け皿」を意味する）。
+    # 既定は空リスト＝未指定（lock_gpio_pin/lock_active_high から単一スロットを自動生成）。
+    locks: list[dict] = field(default_factory=list)
 
     # 施錠検知センサ（LE-53 カムスイッチ：09 §5-1）。既定は "off"（未使用）。
     # 配線・現物確認が済んだら "auto"（Pi では実機, それ以外はモック）等に変更する。
@@ -46,6 +53,8 @@ class Config:
     cam_switch_gpio_pin: int = 27
     cam_switch_active_low: bool = True  # 施錠で接点が GND に落ちる（内部プルアップ）
     cam_switch_bounce_ms: int = 50
+    # 連続して何回読み取り失敗したら「配線異常疑い」として error ログ/通知を1回発火するか
+    cam_switch_fail_streak_threshold: int = 5
 
     # デバイス選択: "auto" | "mock" | "real"
     card_reader: str = "auto"
@@ -56,6 +65,23 @@ class Config:
     log_level: str = "INFO"
     log_max_bytes: int = 1_000_000
     log_backup_count: int = 7
+
+    # UI テーマ（管理者がconfig.jsonで設定。エンドユーザー向けトグルは設けない）
+    theme: str = "dark"  # "dark" | "light"
+
+    # カスタム貸出時間（端末での分単位フリー入力。duration_choices_min のプリセットに加え、
+    # この範囲内の任意の整数分も許可する）
+    custom_duration_min_minutes: int = 1
+    custom_duration_max_minutes: int = 1440
+
+    # 返却確認画面での長押し秒数（誤操作防止）。0 を指定するとワンタップ確認に戻る。
+    return_confirm_hold_seconds: float = 3.0
+
+    # Teams Webhook 通知。URL 未設定なら完全に no-op。
+    teams_webhook_url: str = ""
+    teams_notify_overdue: bool = True
+    teams_notify_errors: bool = True
+    teams_notify_routine: bool = False
 
     @classmethod
     def load(cls, path: str | Path | None = None) -> "Config":
@@ -98,8 +124,48 @@ class Config:
             errors.append("lock は auto/mock/real のいずれかです")
         if self.cam_switch not in ("off", "auto", "mock", "real"):
             errors.append("cam_switch は off/auto/mock/real のいずれかです")
+        if self.cam_switch_fail_streak_threshold <= 0:
+            errors.append("cam_switch_fail_streak_threshold は正の整数である必要があります")
         if self.log_level.upper() not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
             errors.append("log_level が不正です")
+        if self.theme not in ("dark", "light"):
+            errors.append("theme は dark/light のいずれかです")
+        if not isinstance(self.custom_duration_min_minutes, int) or self.custom_duration_min_minutes <= 0:
+            errors.append("custom_duration_min_minutes は正の整数である必要があります")
+        if not isinstance(self.custom_duration_max_minutes, int) or self.custom_duration_max_minutes <= 0:
+            errors.append("custom_duration_max_minutes は正の整数である必要があります")
+        elif self.custom_duration_min_minutes > self.custom_duration_max_minutes:
+            errors.append("custom_duration_min_minutes は custom_duration_max_minutes 以下である必要があります")
+        if self.return_confirm_hold_seconds < 0:
+            errors.append("return_confirm_hold_seconds は 0 以上である必要があります")
+        if self.teams_webhook_url and not self.teams_webhook_url.startswith("https://"):
+            errors.append("teams_webhook_url は https:// で始まる必要があります")
+        if not isinstance(self.locks, list):
+            errors.append("locks はリストである必要があります")
+        else:
+            seen_pins: set[int] = set()
+            seen_slots: set[str] = set()
+            for slot_cfg in self.locks:
+                if not isinstance(slot_cfg, dict):
+                    errors.append("locks の各要素はオブジェクトである必要があります")
+                    continue
+                pin = slot_cfg.get("gpio_pin")
+                slot = slot_cfg.get("slot")
+                item_ids = slot_cfg.get("item_ids", [])
+                if not isinstance(pin, int):
+                    errors.append("locks[].gpio_pin は整数である必要があります")
+                elif pin in seen_pins:
+                    errors.append(f"locks[].gpio_pin が重複しています: {pin}")
+                else:
+                    seen_pins.add(pin)
+                if not isinstance(slot, str) or not slot.strip():
+                    errors.append("locks[].slot は空でない文字列である必要があります")
+                elif slot in seen_slots:
+                    errors.append(f"locks[].slot が重複しています: {slot}")
+                else:
+                    seen_slots.add(slot)
+                if not isinstance(item_ids, list) or any(not isinstance(i, int) for i in item_ids):
+                    errors.append("locks[].item_ids は整数のリストである必要があります")
         if errors:
             raise ConfigError("config.json の設定が不正です: " + " / ".join(errors))
 

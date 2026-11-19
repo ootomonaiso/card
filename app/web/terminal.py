@@ -8,18 +8,23 @@
 from __future__ import annotations
 
 import threading
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Callable
 
 from app.context import AppContext
 from app.log import audit, get_logger
-from app.services.clock import from_iso
+from app.services.clock import from_iso, to_iso
 from app.services.item import ItemError
 from app.services.loan import LoanError
 from app.services.member import MemberError
 from app.services.report import ExportPathError, validate_export_path
 
 DURATION_LABELS = {15: "15分", 30: "30分", 60: "1時間", 120: "2時間", 240: "4時間", 480: "8時間"}
+
+# LoanService が解錠ハード故障を re-wrap したときのメッセージの一部。
+# エラー表示の文脈分け（③ハード故障の検知と表示）に使う軽量な目印であり、
+# 正式なエラーコードではない（今後文脈が増えたら enum 化を検討）。
+_HARDWARE_ERROR_HINT = "解錠に失敗"
 
 _log = get_logger("terminal")
 
@@ -37,7 +42,11 @@ class Terminal:
         self._admin = None          # 管理者（A01〜A03の戻り先）
         self._borrower = None       # 貸出操作中のメンバー
         self._borrow_item = None    # 貸出操作中に選択した物品（複数物品対応）
+        self._borrow_duration: int | None = None  # borrow_confirm に進む前に選んだ分数
+        self._borrow_available_count = 0  # エラー表示の文脈分け用（単品/複数物品）
         self._return_loan = None    # 返却対象ログ
+        self._return_count = 0      # エラー表示の文脈分け用（単品/複数物品）
+        self._overdue_notified: set[int] = set()  # Teams通知済みの loan_id（重複通知防止）
         self._capture_idm: str | None = None  # A02 登録用/setup用に取り込んだIDm
         self._reissue_target: int | None = None  # カード再発行待ちのメンバーID（A02）
         self._reissue_message: str = ""          # カード再発行の結果メッセージ（A02）
@@ -51,6 +60,17 @@ class Terminal:
     # ---------------------------------------------------------- 日時整形
     def _fmt(self, iso: str | None) -> str:
         return from_iso(iso).strftime(self.cfg.csv_datetime_format) if iso else ""
+
+    # ---------------------------------------------------------- エラー文脈
+    @staticmethod
+    def _item_count_context(count: int) -> str:
+        """単品/複数物品のどちらで発生したエラーかを示す軽量な文脈ヒント。"""
+        return "multi_item" if count > 1 else "single_item"
+
+    def _loan_error_context(self, e: Exception, count: int) -> str:
+        if _HARDWARE_ERROR_HINT in str(e):
+            return "hardware"
+        return self._item_count_context(count)
 
     # ---------------------------------------------------------- 状態の送出
     def state(self) -> dict:
@@ -71,19 +91,38 @@ class Terminal:
         self._emit()
 
     # ---------------------------------------------------------- 画面構築
+    @staticmethod
+    def _group_by_category(items: list[dict]) -> dict:
+        """物品のカテゴリ(ラベル)が複数種類ある場合のみ groups キーを追加する。
+
+        未分類の物品は「未分類」というラベルにまとめる。カテゴリラベルが1種類
+        （全未分類含む）なら items のフラット構造のみを返し、既存の描画
+        （カテゴリ非対応）との後方互換を保つ。
+        """
+        labels = [it.get("category") or "未分類" for it in items]
+        payload: dict = {"items": items}
+        if len(set(labels)) >= 2:
+            groups: dict[str, list[dict]] = {}
+            for it, label in zip(items, labels):
+                groups.setdefault(label, []).append(it)
+            payload["groups"] = [
+                {"category": cat, "items": its} for cat, its in groups.items()
+            ]
+        return payload
+
     def _standby_payload(self) -> dict:
         # 全物品の状況をリストで渡す。描画側（app.js）が物品1件なら従来のシンプル表示、
         # 複数件なら一覧表示に出し分ける。物品名はDBの値を使う（cfg.item_name は使わない）。
         items: list[dict] = []
         for st in self.ctx.loans.status_list():
-            item: dict = {"name": st.name, "is_lent": st.is_lent}
+            item: dict = {"name": st.name, "is_lent": st.is_lent, "category": st.category or ""}
             if st.is_lent:
                 item["is_overdue"] = st.is_overdue
                 item["due_at"] = self._fmt(st.due_at)
                 if self.cfg.show_borrower_name and st.borrower_name:
                     item["borrower_name"] = st.borrower_name
             items.append(item)
-        return {"items": items}
+        return self._group_by_category(items)
 
     def _home_screen(self) -> str:
         """待受のホーム画面。要タッチ設定なら attract、そうでなければ standby。"""
@@ -104,6 +143,7 @@ class Terminal:
         with self._lock:
             self._admin = self._borrower = self._return_loan = None
             self._borrow_item = None
+            self._borrow_duration = None
             self._reset_member_admin_state()
             self._goto(self._home_screen(), self._standby_payload())
 
@@ -132,7 +172,25 @@ class Terminal:
                 if payload != self.payload:
                     self.payload = payload
                     self._emit()
+            self._scan_overdue()
         self._start_refresh_loop()
+
+    def _scan_overdue(self) -> None:
+        """新たに延滞になった貸出を見つけたら Teams へ通知する（画面に関係なく常時監視）。
+
+        loan_id を記録して同じ貸出への重複通知を防ぐ（永続化はしない。再起動で
+        リセットされても、通知が1回増える程度で実害は無いため割り切る）。
+        """
+        for st in self.ctx.loans.status_list():
+            loan = st.open_loan
+            if loan is None or not st.is_overdue:
+                continue
+            if loan.loan_id in self._overdue_notified:
+                continue
+            self._overdue_notified.add(loan.loan_id)
+            self.ctx.notifier.notify_overdue(
+                st.name, st.borrower_name or "", self._fmt(st.due_at)
+            )
 
     # ---------------------------------------------------------- カードタッチ
     def on_card(self, idm: str) -> None:
@@ -174,7 +232,7 @@ class Terminal:
                     self._goto("setup", {"idm": idm})
                     return
                 audit().info("認証失敗（未登録/無効） idm=%s", idm)
-                self._goto("error", {"reason": "この社員証は登録されていません"},
+                self._goto("error", {"reason": "この社員証は登録されていません", "context": "auth"},
                            auto_return=self.cfg.result_screen_seconds)
                 return
             if member.is_admin:
@@ -194,8 +252,9 @@ class Terminal:
     def _begin_borrow(self, member) -> None:
         """空き物品数に応じて、物品選択（borrow_item）か時間選択（borrow_time）へ進む。"""
         available = self.ctx.loans.available_items()
+        self._borrow_available_count = len(available)
         if not available:
-            self._goto("error", {"reason": "空いている物品がありません"},
+            self._goto("error", {"reason": "空いている物品がありません", "context": "no_items"},
                        auto_return=self.cfg.result_screen_seconds)
             return
         self._borrower = member
@@ -209,6 +268,7 @@ class Terminal:
 
     def _start_return(self, returnable) -> None:
         """返却候補数に応じて、返却物品選択（return_select）か返却確認へ進む。"""
+        self._return_count = len(returnable)
         if len(returnable) == 1:
             self._return_loan = returnable[0]
             self._goto("return_confirm", self._return_confirm_payload(returnable[0]))
@@ -217,15 +277,22 @@ class Terminal:
 
     # ---------------------------------------------------------- 貸出（S03/S04）
     def _borrow_item_payload(self, items) -> dict:
-        return {"items": [
-            {"item_id": it.item_id, "name": it.name, "location": it.location or ""}
+        return self._group_by_category([
+            {
+                "item_id": it.item_id, "name": it.name, "location": it.location or "",
+                "category": it.category or "",
+            }
             for it in items
-        ]}
+        ])
 
     def _borrow_time_payload(self) -> dict:
         choices = [{"min": m, "label": DURATION_LABELS.get(m, f"{m}分")}
                    for m in self.cfg.duration_choices_min]
-        data: dict = {"choices": choices}
+        data: dict = {
+            "choices": choices,
+            "custom_min": self.cfg.custom_duration_min_minutes,
+            "custom_max": self.cfg.custom_duration_max_minutes,
+        }
         if self._borrow_item is not None:
             data["item_name"] = self._borrow_item.name
         return data
@@ -238,20 +305,55 @@ class Terminal:
             available = {it.item_id: it for it in self.ctx.loans.available_items()}
             item = available.get(item_id)
             if item is None:
-                self._goto("error", {"reason": "この物品は選べません"},
-                           auto_return=self.cfg.result_screen_seconds)
+                self._goto("error", {
+                    "reason": "この物品は選べません",
+                    "context": self._item_count_context(self._borrow_available_count),
+                }, auto_return=self.cfg.result_screen_seconds)
                 return
             self._borrow_item = item
             self._goto("borrow_time", self._borrow_time_payload())
 
     def choose_duration(self, minutes: int) -> None:
+        """貸出時間を選ぶ（まだ貸出は確定しない）→ 取り出し確認画面へ。"""
         with self._lock:
             if self.screen != "borrow_time" or self._borrower is None or self._borrow_item is None:
                 return
+            if not self.ctx.loans.is_valid_duration(minutes):
+                self._goto("error", {
+                    "reason": f"不正な貸出時間です: {minutes}",
+                    "context": self._item_count_context(self._borrow_available_count),
+                }, auto_return=self.cfg.result_screen_seconds)
+                return
+            self._borrow_duration = minutes
+            self._goto("borrow_confirm", self._borrow_confirm_payload())
+
+    def _borrow_confirm_payload(self) -> dict:
+        due_preview = self.ctx.clock.now() + timedelta(minutes=self._borrow_duration)
+        return {
+            "item_name": self._borrow_item.name,
+            "duration_min": self._borrow_duration,
+            "due_at": self._fmt(to_iso(due_preview)),
+        }
+
+    def confirm_borrow(self) -> None:
+        """取り出し確認画面（borrow_confirm）で「開錠する」を押したときに、実際に貸出・解錠する。"""
+        with self._lock:
+            if (
+                self.screen != "borrow_confirm"
+                or self._borrower is None
+                or self._borrow_item is None
+                or self._borrow_duration is None
+            ):
+                return
             try:
-                loan = self.ctx.loans.borrow(self._borrower, self._borrow_item.item_id, minutes)
+                loan = self.ctx.loans.borrow(
+                    self._borrower, self._borrow_item.item_id, self._borrow_duration
+                )
             except LoanError as e:
-                self._goto("error", {"reason": str(e)}, auto_return=self.cfg.result_screen_seconds)
+                self._goto("error", {
+                    "reason": str(e),
+                    "context": self._loan_error_context(e, self._borrow_available_count),
+                }, auto_return=self.cfg.result_screen_seconds)
                 return
             self._goto("unlock", {"mode": "borrow", "due_at": self._fmt(loan.due_at),
                                   "item_name": self._borrow_item.name},
@@ -267,6 +369,7 @@ class Terminal:
             "item_name": self._item_name(loan.item_id),
             "borrowed_at": self._fmt(loan.borrowed_at),
             "due_at": self._fmt(loan.due_at),
+            "hold_seconds": self.cfg.return_confirm_hold_seconds,
         }
 
     def _return_select_payload(self, loans) -> dict:
@@ -288,8 +391,10 @@ class Terminal:
             loans = {ln.loan_id: ln for ln in self.ctx.loans.find_returnable_loans(self._borrower)}
             loan = loans.get(loan_id)
             if loan is None:
-                self._goto("error", {"reason": "この貸出は返却できません"},
-                           auto_return=self.cfg.result_screen_seconds)
+                self._goto("error", {
+                    "reason": "この貸出は返却できません",
+                    "context": self._item_count_context(self._return_count),
+                }, auto_return=self.cfg.result_screen_seconds)
                 return
             self._return_loan = loan
             self._goto("return_confirm", self._return_confirm_payload(loan))
@@ -314,7 +419,10 @@ class Terminal:
                 self.ctx.loans.return_loan(self._return_loan)
             except LoanError as e:
                 # 解錠失敗などは待機へ戻さずエラー画面で通知する（③）。
-                self._goto("error", {"reason": str(e)}, auto_return=self.cfg.result_screen_seconds)
+                self._goto("error", {
+                    "reason": str(e),
+                    "context": self._loan_error_context(e, self._return_count),
+                }, auto_return=self.cfg.result_screen_seconds)
                 return
             self._goto("unlock", {"mode": "return",
                                   "item_name": self._item_name(self._return_loan.item_id)},
@@ -403,28 +511,28 @@ class Terminal:
     def _item_admin_payload(self) -> dict:
         return {"items": self.ctx.item_svc.list_with_status()}
 
-    def add_item(self, name: str, location: str) -> dict:
+    def add_item(self, name: str, location: str, category: str = "") -> dict:
         with self._lock:
             denied = self._require_admin("物品追加")
             if denied:
                 return denied
             self._reset_idle()
             try:
-                self.ctx.item_svc.add_item(name, location)
+                self.ctx.item_svc.add_item(name, location, category)
             except ItemError as e:
                 return {"ok": False, "message": str(e)}
             self.payload = self._item_admin_payload()
             self._emit()
             return {"ok": True, "message": f"{(name or '').strip()} を追加しました"}
 
-    def update_item(self, item_id: int, name: str, location: str) -> dict:
+    def update_item(self, item_id: int, name: str, location: str, category: str = "") -> dict:
         with self._lock:
             denied = self._require_admin("物品編集")
             if denied:
                 return denied
             self._reset_idle()
             try:
-                self.ctx.item_svc.update_item(item_id, name, location)
+                self.ctx.item_svc.update_item(item_id, name, location, category)
             except ItemError as e:
                 return {"ok": False, "message": str(e)}
             self.payload = self._item_admin_payload()

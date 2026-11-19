@@ -10,6 +10,7 @@ import threading
 
 from app.config import Config
 from app.db import connect, init_db
+from app.devices.base import LockRegistry
 from app.devices.factory import create_card_reader, create_lock, create_lock_sensor
 from app.repository.items import ItemRepository
 from app.repository.loans import LoanRepository
@@ -19,6 +20,7 @@ from app.services.clock import Clock
 from app.services.item import ItemService
 from app.services.loan import LoanService
 from app.services.member import MemberService
+from app.services.notify import TeamsNotifier
 from app.services.report import ReportService
 
 
@@ -31,6 +33,7 @@ class AppContext:
         card_reader=None,
         lock=None,
         lock_sensor=None,
+        notifier: TeamsNotifier | None = None,
     ) -> None:
         self.cfg = cfg
         self.conn = conn
@@ -42,13 +45,26 @@ class AppContext:
         self.item_repo = ItemRepository(conn)
         self.loan_repo = LoanRepository(conn)
 
+        self.notifier = notifier if notifier is not None else TeamsNotifier(
+            cfg.teams_webhook_url, cfg.teams_notify_overdue,
+            cfg.teams_notify_errors, cfg.teams_notify_routine,
+        )
+
         self.card_reader = card_reader if card_reader is not None else create_card_reader(cfg)
-        self.lock = lock if lock is not None else create_lock(cfg)
-        self.lock_sensor = lock_sensor if lock_sensor is not None else create_lock_sensor(cfg)
+        lock_obj = lock if lock is not None else create_lock(cfg)
+        # 単体の LockController（テスト等から直接渡される場合）は単一スロットの
+        # LockRegistry に包み、LoanService からは常に for_item() で引けるようにする。
+        self.lock: LockRegistry = (
+            lock_obj if isinstance(lock_obj, LockRegistry) else LockRegistry.single(lock_obj)
+        )
+        self.lock_sensor = (
+            lock_sensor if lock_sensor is not None else create_lock_sensor(cfg, self.notifier)
+        )
 
         self.auth = AuthService(self.member_repo)
         self.loans = LoanService(
-            cfg, self.clock, self.member_repo, self.item_repo, self.loan_repo, self.lock
+            cfg, self.clock, self.member_repo, self.item_repo, self.loan_repo, self.lock,
+            self.notifier,
         )
         self.members = MemberService(self.clock, self.member_repo)
         self.item_svc = ItemService(self.item_repo, self.loan_repo)

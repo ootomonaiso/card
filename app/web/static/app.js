@@ -47,11 +47,11 @@ const draft = { name: "", employee_no: "", role: "user" };
 // 初期管理者登録フォームの下書き（setup画面・再タッチでの再描画時に入力を保持）
 const setupDraft = { name: "", employee_no: "" };
 // 物品追加フォームの下書き（物品管理画面の再描画時に入力を保持）
-const itemDraft = { name: "", location: "" };
+const itemDraft = { name: "", location: "", category: "" };
 // 一覧の行内編集の下書き。他行の操作でSSE再描画が走っても未保存の入力を保持する。
 // 画面を離れたとき render() が clear する（stale化を防ぐ）。キーは member_id / item_id。
 const memberEdits = new Map(); // member_id -> {name, employee_no}
-const itemEdits = new Map();   // item_id -> {name, location}
+const itemEdits = new Map();   // item_id -> {name, location, category}
 
 function screenWrap(children, extraClass = "") {
   appEl.replaceChildren(el("div", { class: extraClass ? `screen ${extraClass}` : "screen" }, children));
@@ -115,12 +115,19 @@ function heroStatus(it) {
   ]);
 }
 
-function homeContent(items, withHint) {
+function homeContent(d, withHint) {
+  const items = d.items || [];
   const kids = [];
   const title = items.length === 1 ? `${esc(items[0].name)} 貸出` : "物品 貸出";
   kids.push(el("h1", { class: "headline", html: title }));
   if (items.length === 1) {
     kids.push(heroStatus(items[0]));
+  } else if (d.groups) {
+    // 複数カテゴリがあるときはカテゴリ見出し付きで一覧を分ける。
+    for (const g of d.groups) {
+      kids.push(el("div", { class: "section-label", html: esc(g.category) }));
+      kids.push(el("div", { class: "statuslist" }, g.items.map(itemStatusChip)));
+    }
   } else if (items.length > 1) {
     kids.push(el("div", { class: "statuslist" }, items.map(itemStatusChip)));
   }
@@ -131,34 +138,37 @@ function homeContent(items, withHint) {
 const RENDER = {
   // 要タッチ設定時の待受。画面のどこを触っても開始（standbyへ）
   attract(d) {
-    const items = d.items || [];
     const hint = el("p", { class: "hint pulse", html: "画面にタッチしてはじめる" });
-    const scr = el("div", { class: "screen", onclick: () => action("start") }, homeContent(items, hint));
+    const scr = el("div", { class: "screen", onclick: () => action("start") }, homeContent(d, hint));
     scr.style.cursor = "pointer";
     appEl.replaceChildren(scr);
   },
 
   standby(d) {
-    const items = d.items || [];
     const hint = el("p", { class: "hint" }, [icon("card", "ico"), el("span", { html: "　社員証をタッチしてください" })]);
     hint.style.display = "inline-flex";
     hint.style.alignItems = "center";
-    screenWrap(homeContent(items, hint));
+    screenWrap(homeContent(d, hint));
   },
 
   // 空き物品が複数あるときの物品選択（貸出）
   borrow_item(d) {
-    const grid = el("div", { class: "grid" }, (d.items || []).map(it =>
-      el("button", {
-        class: "tonal",
-        onclick: () => action("choose_item", { item_id: it.item_id }),
-        html: it.location ? `${esc(it.name)}<br><small>${esc(it.location)}</small>` : esc(it.name),
-      })));
-    screenWrap([
-      el("p", { class: "title", html: "借りる物品を選んでください" }),
-      grid,
-      el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
-    ]);
+    const itemBtn = it => el("button", {
+      class: "tonal",
+      onclick: () => action("choose_item", { item_id: it.item_id }),
+      html: it.location ? `${esc(it.name)}<br><small>${esc(it.location)}</small>` : esc(it.name),
+    });
+    const kids = [el("p", { class: "title", html: "借りる物品を選んでください" })];
+    if (d.groups) {
+      for (const g of d.groups) {
+        kids.push(el("div", { class: "section-label", html: esc(g.category) }));
+        kids.push(el("div", { class: "grid" }, g.items.map(itemBtn)));
+      }
+    } else {
+      kids.push(el("div", { class: "grid" }, (d.items || []).map(itemBtn)));
+    }
+    kids.push(el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }));
+    screenWrap(kids);
   },
 
   // 本人の未返却が複数あるときの返却物品選択
@@ -182,10 +192,45 @@ const RENDER = {
   borrow_time(d) {
     const grid = el("div", { class: "grid" },
       d.choices.map(c => el("button", { class: "tonal", onclick: () => action("choose_duration", { minutes: c.min }), html: c.label })));
+
+    const customToast = el("p", { class: "toast muted" });
+    const customInput = el("input", {
+      type: "number", inputmode: "numeric",
+      min: String(d.custom_min), max: String(d.custom_max),
+      placeholder: `${d.custom_min}〜${d.custom_max}`,
+    });
+    const submitCustom = () => {
+      const n = parseInt(customInput.value, 10);
+      if (!Number.isInteger(n) || n < d.custom_min || n > d.custom_max) {
+        customToast.className = "toast danger";
+        customToast.textContent = `${d.custom_min}〜${d.custom_max} の整数（分）を入力してください`;
+        return;
+      }
+      action("choose_duration", { minutes: n });
+    };
+    const customRow = el("div", { class: "card" }, [
+      el("div", { class: "field" }, [el("label", { html: "カスタム（分）" }), customInput]),
+      el("button", { class: "small", onclick: submitCustom, html: "この時間で借りる" }),
+      customToast,
+    ]);
+
     screenWrap([
       el("p", { class: "title", html: d.item_name ? `${esc(d.item_name)} の貸出時間を選んでください` : "貸出時間を選んでください" }),
       grid,
+      customRow,
       el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
+    ]);
+  },
+
+  borrow_confirm(d) {
+    screenWrap([
+      el("p", { class: "display", html: "借りますか？" }),
+      d.item_name ? el("p", { class: "title", text: d.item_name }) : null,
+      el("p", { class: "body muted", html: `返却予定: <span class="num">${esc(d.due_at)}</span>` }),
+      el("div", { class: "row" }, [
+        el("button", { class: "ok", onclick: () => action("confirm_borrow"), html: "開錠する" }),
+        el("button", { class: "text", onclick: () => action("cancel"), html: "やめる" }),
+      ]),
     ]);
   },
 
@@ -205,12 +250,63 @@ const RENDER = {
   },
 
   return_confirm(d) {
+    const holdSeconds = d.hold_seconds || 0;
+    let okBtn;
+    if (holdSeconds > 0) {
+      // 誤操作防止のため、タップ＆リリースではなく holdSeconds 秒の長押しで確定する。
+      // タイマー自体（誤操作防止の要件）は常に有効にし、見た目のプログレスバーは
+      // reduced-motion 環境では滑らかな連続アニメーションにせず、離散的な見た目にする。
+      const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const fill = el("span", { class: "hold-fill" });
+      const label = el("span", { class: "hold-label", html: `返却する（${holdSeconds}秒長押し）` });
+      okBtn = el("button", { class: "ok hold-btn" }, [label, fill]);
+      let raf = null, start = 0, active = false;
+      const reset = () => {
+        active = false;
+        if (raf) cancelAnimationFrame(raf);
+        fill.style.width = "0%";
+      };
+      const tick = () => {
+        if (!active) return;
+        const elapsed = (performance.now() - start) / 1000;
+        const pct = Math.min(100, (elapsed / holdSeconds) * 100);
+        fill.style.width = reducedMotion ? `${Math.floor(pct / 20) * 20}%` : `${pct}%`;
+        if (elapsed >= holdSeconds) {
+          active = false;
+          action("confirm_return");
+          return;
+        }
+        raf = requestAnimationFrame(tick);
+      };
+      const startHold = (e) => {
+        if (active) return;
+        e.preventDefault();
+        active = true;
+        start = performance.now();
+        raf = requestAnimationFrame(tick);
+      };
+      const endHold = () => reset();
+      okBtn.addEventListener("pointerdown", startHold);
+      okBtn.addEventListener("pointerup", endHold);
+      okBtn.addEventListener("pointerleave", endHold);
+      okBtn.addEventListener("pointercancel", endHold);
+      // キーボード操作（Enter/Space長押し）でも同じ確定ジェスチャーが効くようにする
+      // （ポインタイベントのみだとキーボード/スイッチアクセス利用者が操作できなくなる）。
+      okBtn.addEventListener("keydown", (e) => {
+        if ((e.key === "Enter" || e.key === " ") && !e.repeat) startHold(e);
+      });
+      okBtn.addEventListener("keyup", (e) => {
+        if (e.key === "Enter" || e.key === " ") endHold();
+      });
+    } else {
+      okBtn = el("button", { class: "ok", onclick: () => action("confirm_return"), html: "返却する" });
+    }
     screenWrap([
       el("p", { class: "display", html: "返却しますか？" }),
       d.item_name ? el("p", { class: "title", text: d.item_name }) : null,
       el("p", { class: "body muted", html: `貸出日時: <span class="num">${esc(d.borrowed_at)}</span><br>返却予定: <span class="num">${esc(d.due_at)}</span>` }),
       el("div", { class: "row" }, [
-        el("button", { class: "ok", onclick: () => action("confirm_return"), html: "返却する" }),
+        okBtn,
         el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }),
         el("button", { class: "text", onclick: () => action("cancel"), html: "やめる" }),
       ]),
@@ -218,10 +314,21 @@ const RENDER = {
   },
 
   error(d) {
+    // context はサーバ側の軽量な表示ヒント（正式なエラーコードではない）。
+    // 未知/未指定の値は何も補足しない（後方互換）。
+    const ERROR_CONTEXT_COPY = {
+      auth: "社員証が登録されているか確認してください。",
+      no_items: "物品の返却を待つか、係員にご相談ください。",
+      single_item: "もう一度やり直してください。",
+      multi_item: "一覧が更新されています。もう一度選び直してください。",
+      hardware: "ハードウェアの異常です。係員にご連絡ください。",
+    };
+    const sub = ERROR_CONTEXT_COPY[d.context];
     screenWrap([
       icon("alert", "hero-ico danger"),
       el("p", { class: "display danger", html: "エラー" }),
       el("p", { class: "title", text: d.reason || "" }),
+      sub ? el("p", { class: "body", text: sub }) : null,
       el("p", { class: "body muted", html: "数秒後に待機画面へ戻ります" }),
     ]);
   },
@@ -288,16 +395,18 @@ const RENDER = {
   item_admin(d) {
     const name = el("input", { value: itemDraft.name, oninput: e => itemDraft.name = e.target.value });
     const loc = el("input", { value: itemDraft.location, oninput: e => itemDraft.location = e.target.value });
+    const cat = el("input", { value: itemDraft.category, oninput: e => itemDraft.category = e.target.value });
     const toast = el("p", { class: "toast muted" });
     const add = async () => {
-      const r = await action("add_item", { name: name.value, location: loc.value });
+      const r = await action("add_item", { name: name.value, location: loc.value, category: cat.value });
       toast.className = "toast " + (r.ok ? "ok" : "danger");
       toast.textContent = r.message || "";
-      if (r.ok) { itemDraft.name = ""; itemDraft.location = ""; }
+      if (r.ok) { itemDraft.name = ""; itemDraft.location = ""; itemDraft.category = ""; }
     };
     const card = el("div", { class: "card" }, [
       el("div", { class: "field" }, [el("label", { html: "物品名" }), name]),
       el("div", { class: "field" }, [el("label", { html: "保管場所" }), loc]),
+      el("div", { class: "field" }, [el("label", { html: "ジャンル（カテゴリ）" }), cat]),
       el("button", { class: "small", onclick: add, html: "物品を追加" }),
       toast,
     ]);
@@ -312,11 +421,13 @@ const RENDER = {
       const ed = itemEdits.get(it.item_id);
       const editName = el("input", { value: ed ? ed.name : it.name, size: 10 });
       const editLoc = el("input", { value: ed ? ed.location : it.location, size: 10 });
-      const remember = () => itemEdits.set(it.item_id, { name: editName.value, location: editLoc.value });
+      const editCat = el("input", { value: ed ? ed.category : it.category, size: 10, placeholder: "ジャンル" });
+      const remember = () => itemEdits.set(it.item_id, { name: editName.value, location: editLoc.value, category: editCat.value });
       editName.addEventListener("input", remember);
       editLoc.addEventListener("input", remember);
+      editCat.addEventListener("input", remember);
       const editSave = () => action("update_item", {
-        item_id: it.item_id, name: editName.value, location: editLoc.value,
+        item_id: it.item_id, name: editName.value, location: editLoc.value, category: editCat.value,
       }).then(r => { if (r.ok) itemEdits.delete(it.item_id); showListResult(r); });
 
       const activeBtn = it.is_active
@@ -326,7 +437,7 @@ const RENDER = {
       const state = `${it.is_active ? "有効" : "無効"}${it.is_lent ? " / 貸出中" : ""}`;
       return el("div", { class: "item" }, [
         el("span", { html: state, class: "state" }),
-        editName, editLoc,
+        editName, editLoc, editCat,
         el("button", { class: "tonal small", onclick: editSave, html: "保存" }),
         activeBtn,
       ]);
@@ -452,8 +563,10 @@ function connect() {
 }
 connect();
 
+// ---- テーマ（管理者がconfig.jsonで設定。エンドユーザー向けトグルはない）----
 // ---- 開発用：疑似カードタッチバー（モックモードのみ）----
 fetch("/api/meta").then(r => r.json()).then(meta => {
+  if (meta.theme) document.documentElement.setAttribute("data-theme", meta.theme);
   if (!meta.mock) return;
   const bar = document.getElementById("devbar");
   bar.hidden = false;

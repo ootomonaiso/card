@@ -31,6 +31,11 @@ def init_db(conn: sqlite3.Connection, item_name: str, item_location: str) -> Non
     格下げされており、以後の物品の増減は物品管理画面（ItemService）で行う。
     """
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    # schema.sql の CREATE TABLE IF NOT EXISTS は既存テーブルには無力なので、
+    # 既存DBへの列追加は PRAGMA table_info を見て個別に ALTER TABLE する。
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(ITEM)")}
+    if "category" not in columns:
+        conn.execute("ALTER TABLE ITEM ADD COLUMN category TEXT")
     # 起動時にDBの健全性を軽く点検（破損していれば運用ログに警告）。
     row = conn.execute("PRAGMA quick_check").fetchone()
     if row is not None and row[0] != "ok":
