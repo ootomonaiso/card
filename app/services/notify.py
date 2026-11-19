@@ -58,6 +58,18 @@ class TeamsNotifier:
             return
         self._post(f"⚠️ エラー: {message}")
 
+    def notify_not_locked(self, item_name: str, seconds: float) -> None:
+        """解錠後に施錠されないまま一定時間が過ぎたとき（閉め忘れ疑い）に通知する。
+
+        施錠されない＝保管庫が開けっ放しというセキュリティ事象なので、
+        エラー通知（_errors_enabled）と同じフラグの配下に置く。
+        """
+        if not self._errors_enabled:
+            return
+        self._post(
+            f"🔓 閉め忘れの疑い: {item_name} が解錠から約{int(seconds)}秒経っても施錠されていません"
+        )
+
     def notify_routine(self, action: str, item_name: str, member_name: str) -> None:
         if not self._routine_enabled:
             return

@@ -8,16 +8,19 @@
 from __future__ import annotations
 
 import threading
+from dataclasses import replace
 from datetime import date, datetime, timedelta
 from typing import Callable
 
+from app.config import ConfigError
 from app.context import AppContext
 from app.log import audit, get_logger
 from app.services.clock import from_iso, to_iso
 from app.services.item import ItemError
 from app.services.loan import LoanError
 from app.services.member import MemberError
-from app.services.report import ExportPathError, validate_export_path
+from app.services.report import CSV_HEADER, ExportPathError, validate_export_path
+from app.services.timesync import ntp_status
 
 DURATION_LABELS = {15: "15分", 30: "30分", 60: "1時間", 120: "2時間", 240: "4時間", 480: "8時間"}
 
@@ -27,6 +30,31 @@ DURATION_LABELS = {15: "15分", 30: "30分", 60: "1時間", 120: "2時間", 240:
 _HARDWARE_ERROR_HINT = "解錠に失敗"
 
 _log = get_logger("terminal")
+
+# 設定画面（FR-19）から編集できるフィールド。起動時に一度しか読まれない項目
+# （デバイス選択・GPIO・テーマ等）は含めない＝再起動不要で安全に反映できるものだけ。
+_EDITABLE_SETTINGS = (
+    "unlock_seconds", "idle_timeout_seconds", "result_screen_seconds",
+    "standby_refresh_seconds", "return_confirm_hold_seconds", "due_soon_minutes",
+    "show_borrower_name", "allow_return_by_others", "require_tap_to_start",
+    "teams_notify_overdue", "teams_notify_errors", "teams_notify_routine",
+)
+
+
+def _coerce_like(current, value):
+    """既定値 current と同じ型へ value を変換する（JSON 由来の揺れを吸収）。
+
+    bool は "true"/"1"/"on" 等の文字列も受ける（チェックボックス送信対策）。
+    """
+    if isinstance(current, bool):
+        if isinstance(value, bool):
+            return value
+        return str(value).strip().lower() in ("true", "1", "on", "yes")
+    if isinstance(current, int):
+        return int(value)
+    if isinstance(current, float):
+        return float(value)
+    return value
 
 
 class Terminal:
@@ -51,9 +79,12 @@ class Terminal:
         self._reissue_target: int | None = None  # カード再発行待ちのメンバーID（A02）
         self._reissue_message: str = ""          # カード再発行の結果メッセージ（A02）
 
+        self._force_return = False  # 管理者強制返却の最中か（借りる/延長ボタンを出さない）
+
         self._idle_timer: threading.Timer | None = None
         self._return_timer: threading.Timer | None = None
         self._refresh_timer: threading.Timer | None = None
+        self._lock_watch_timer: threading.Timer | None = None  # 閉め忘れ検知（FR-18）
         self._closed = False
         self._start_refresh_loop()
 
@@ -113,12 +144,19 @@ class Terminal:
     def _standby_payload(self) -> dict:
         # 全物品の状況をリストで渡す。描画側（app.js）が物品1件なら従来のシンプル表示、
         # 複数件なら一覧表示に出し分ける。物品名はDBの値を使う（cfg.item_name は使わない）。
+        now = self.ctx.clock.now()
         items: list[dict] = []
         for st in self.ctx.loans.status_list():
             item: dict = {"name": st.name, "is_lent": st.is_lent, "category": st.category or ""}
             if st.is_lent:
                 item["is_overdue"] = st.is_overdue
                 item["due_at"] = self._fmt(st.due_at)
+                # 返却までの残り時間（分）と「まもなく返却」フラグを添える（FR-09 の補助）。
+                # 延滞中は remaining_min が負になるが、表示は既存の overdue 色に任せる。
+                if st.due_at:
+                    remaining = int((from_iso(st.due_at) - now).total_seconds() // 60)
+                    item["remaining_min"] = remaining
+                    item["soon"] = 0 <= remaining <= self.cfg.due_soon_minutes
                 if self.cfg.show_borrower_name and st.borrower_name:
                     item["borrower_name"] = st.borrower_name
             items.append(item)
@@ -144,6 +182,7 @@ class Terminal:
             self._admin = self._borrower = self._return_loan = None
             self._borrow_item = None
             self._borrow_duration = None
+            self._force_return = False
             self._reset_member_admin_state()
             self._goto(self._home_screen(), self._standby_payload())
 
@@ -355,9 +394,11 @@ class Terminal:
                     "context": self._loan_error_context(e, self._borrow_available_count),
                 }, auto_return=self.cfg.result_screen_seconds)
                 return
+            item_name = self._borrow_item.name
             self._goto("unlock", {"mode": "borrow", "due_at": self._fmt(loan.due_at),
-                                  "item_name": self._borrow_item.name},
+                                  "item_name": item_name},
                        auto_return=self.cfg.result_screen_seconds)
+            self._start_lock_watch(item_name)  # 閉め忘れ検知（FR-18）
 
     # ---------------------------------------------------------- 返却（S05/S07）
     def _item_name(self, item_id: int) -> str:
@@ -365,12 +406,21 @@ class Terminal:
         return item.name if item else ""
 
     def _return_confirm_payload(self, loan) -> dict:
-        return {
+        data = {
             "item_name": self._item_name(loan.item_id),
             "borrowed_at": self._fmt(loan.borrowed_at),
             "due_at": self._fmt(loan.due_at),
             "hold_seconds": self.cfg.return_confirm_hold_seconds,
+            # 通常の返却導線では「延長」「借りる」も出す。管理者の強制返却中は
+            # 他人の貸出を操作しているため、これらは出さない（返却/やめるのみ）。
+            "can_extend": not self._force_return,
+            "allow_borrow": not self._force_return,
         }
+        if self._force_return:
+            member = self.ctx.member_repo.get(loan.member_id)
+            if member is not None:
+                data["borrower_name"] = member.name
+        return data
 
     def _return_select_payload(self, loans) -> dict:
         return {"loans": [
@@ -406,10 +456,139 @@ class Terminal:
             # 進行中の画面（解錠中など）を奪われないよう、画面を限定する。
             if self.screen not in ("return_confirm", "return_select"):
                 return
+            if self._force_return:
+                return  # 管理者強制返却中は貸出導線へ移らせない
             member = self._borrower or self._admin
             if member is None:
                 return
             self._begin_borrow(member)
+
+    # ---------------------------------------------------------- 延長（FR-16）
+    def _extend_time_payload(self) -> dict:
+        choices = [{"min": m, "label": DURATION_LABELS.get(m, f"{m}分")}
+                   for m in self.cfg.duration_choices_min]
+        data: dict = {
+            "choices": choices,
+            "custom_min": self.cfg.custom_duration_min_minutes,
+            "custom_max": self.cfg.custom_duration_max_minutes,
+        }
+        if self._return_loan is not None:
+            data["item_name"] = self._item_name(self._return_loan.item_id)
+            data["due_at"] = self._fmt(self._return_loan.due_at)
+        return data
+
+    def open_extend(self) -> None:
+        """返却確認画面から「延長する」→ 延長時間の選択へ。"""
+        with self._lock:
+            if self.screen != "return_confirm" or self._return_loan is None:
+                return
+            # 管理者の強制返却中は他人の貸出なので延長させない。
+            if self._force_return:
+                return
+            self._goto("extend_time", self._extend_time_payload())
+
+    def choose_extension(self, minutes: int) -> None:
+        """延長時間を選ぶ → 延長を確定し、結果画面へ。"""
+        with self._lock:
+            if self.screen != "extend_time" or self._return_loan is None:
+                return
+            try:
+                loan = self.ctx.loans.extend(self._return_loan, minutes)
+            except LoanError as e:
+                self._goto("error", {"reason": str(e), "context": "single_item"},
+                           auto_return=self.cfg.result_screen_seconds)
+                return
+            self._return_loan = loan
+            self._goto("extended", {
+                "item_name": self._item_name(loan.item_id),
+                "due_at": self._fmt(loan.due_at),
+            }, auto_return=self.cfg.result_screen_seconds)
+
+    # ---------------------------------------------------------- 強制返却（FR-17）
+    def _force_return_select_payload(self) -> dict:
+        loans = []
+        for st in self.ctx.loans.status_list():
+            if not st.is_lent or st.open_loan is None:
+                continue
+            loans.append({
+                "loan_id": st.open_loan.loan_id,
+                "item_name": st.name,
+                "borrower_name": st.borrower_name or "",
+                "due_at": self._fmt(st.due_at),
+                "is_overdue": st.is_overdue,
+            })
+        return {"loans": loans}
+
+    def open_force_return(self) -> None:
+        """管理者が、貸出中の物品（他人の分を含む）を強制的に返却する導線を開く。"""
+        with self._lock:
+            denied = self._require_admin("強制返却")
+            if denied:
+                return
+            self._reset_idle()
+            self._force_return = True
+            self._goto("force_return_select", self._force_return_select_payload())
+
+    def choose_force_return(self, loan_id: int) -> None:
+        """強制返却の対象を選ぶ → 返却確認（既存画面を流用）へ。"""
+        with self._lock:
+            if self.screen != "force_return_select" or self._admin is None:
+                return
+            loan = next(
+                (ln for ln in self.ctx.loans.loans.list_open() if ln.loan_id == loan_id),
+                None,
+            )
+            if loan is None:
+                self._goto("error", {"reason": "この貸出は返却できません", "context": "multi_item"},
+                           auto_return=self.cfg.result_screen_seconds)
+                return
+            audit().info(
+                "管理者強制返却 開始 admin_id=%s loan_id=%s",
+                self._admin.member_id, loan.loan_id,
+            )
+            self._return_loan = loan
+            self._goto("return_confirm", self._return_confirm_payload(loan))
+
+    # ---------------------------------------------------------- 閉め忘れ検知（FR-18）
+    def _start_lock_watch(self, item_name: str) -> None:
+        """解錠後、一定時間で施錠されたか確認するタイマを開始する。
+
+        cam_switch 無効（cfg.cam_switch=="off"）なら何もしない（既定で完全 no-op）。
+        """
+        self._cancel_lock_watch()
+        if self.cfg.cam_switch == "off":
+            return
+        self._lock_watch_timer = threading.Timer(
+            self.cfg.relock_alert_seconds, self._check_lock, args=(item_name, 1)
+        )
+        self._lock_watch_timer.daemon = True
+        self._lock_watch_timer.start()
+
+    def _check_lock(self, item_name: str, attempt: int) -> None:
+        with self._lock:
+            if self._closed:
+                return
+            locked = self.ctx.lock_sensor.is_locked()
+            if locked is True:
+                return  # 施錠済み。監視終了。
+            if locked is False:
+                # 未施錠＝閉め忘れの疑い。通知し、上限まで再確認する。
+                self.ctx.notifier.notify_not_locked(
+                    item_name, self.cfg.relock_alert_seconds * attempt
+                )
+            # locked is None（読み取り不明）は通知せず、上限まで再確認だけ続ける。
+            if attempt < self.cfg.relock_alert_repeat:
+                self._lock_watch_timer = threading.Timer(
+                    self.cfg.relock_alert_seconds, self._check_lock,
+                    args=(item_name, attempt + 1),
+                )
+                self._lock_watch_timer.daemon = True
+                self._lock_watch_timer.start()
+
+    def _cancel_lock_watch(self) -> None:
+        if self._lock_watch_timer is not None:
+            self._lock_watch_timer.cancel()
+            self._lock_watch_timer = None
 
     def confirm_return(self) -> None:
         with self._lock:
@@ -424,9 +603,11 @@ class Terminal:
                     "context": self._loan_error_context(e, self._return_count),
                 }, auto_return=self.cfg.result_screen_seconds)
                 return
-            self._goto("unlock", {"mode": "return",
-                                  "item_name": self._item_name(self._return_loan.item_id)},
+            item_name = self._item_name(self._return_loan.item_id)
+            self._force_return = False
+            self._goto("unlock", {"mode": "return", "item_name": item_name},
                        auto_return=self.cfg.result_screen_seconds)
+            self._start_lock_watch(item_name)  # 閉め忘れ検知（FR-18）
 
     def cancel(self) -> None:
         self.go_standby()
@@ -449,6 +630,23 @@ class Terminal:
                 return
             self._goto("admin_menu", self._admin_menu_payload())
 
+    def _dashboard_stats(self) -> dict:
+        """管理メニューの先頭に出すサマリ（貸出中/延滞/本日/今月の貸出回数）。
+
+        既存メソッド（status_list / list_borrowed_between）の再利用に留め、
+        重い集計クエリは増やさない。
+        """
+        statuses = self.ctx.loans.status_list()
+        lent = sum(1 for st in statuses if st.is_lent)
+        overdue = sum(1 for st in statuses if st.is_overdue)
+        now = self.ctx.clock.now()
+        day_start = datetime.combine(now.date(), datetime.min.time())
+        month_start = datetime.combine(now.date().replace(day=1), datetime.min.time())
+        now_iso = to_iso(now)
+        today = len(self.ctx.loan_repo.list_borrowed_between(to_iso(day_start), now_iso))
+        month = len(self.ctx.loan_repo.list_borrowed_between(to_iso(month_start), now_iso))
+        return {"lent": lent, "overdue": overdue, "today": today, "month": month}
+
     def _admin_menu_payload(self) -> dict:
         data: dict = {"admin_name": self._admin.name}
         # 管理者自身の未返却があれば、管理メニューから返却できるようにする。
@@ -457,6 +655,12 @@ class Terminal:
         if loans:
             data["can_return"] = True
             data["return_count"] = len(loans)
+        stats = self._dashboard_stats()
+        data["stats"] = stats
+        # 誰かが借りている物品があれば、強制返却（他人の分を含む）を出す（FR-17）。
+        data["any_lent"] = stats["lent"] > 0
+        # 時刻同期の状態（延滞判定の信頼性の可視化：P7）。
+        data["time_sync"] = ntp_status()
         # カムスイッチ（施錠検知）が有効なら現在の施錠状態を見せる（09 §5-1）。
         # 無効/不明（None）のときはキーごと出さない。
         locked = self.ctx.lock_sensor.is_locked()
@@ -500,6 +704,98 @@ class Terminal:
             if self._admin is None:
                 return
             self._begin_borrow(self._admin)
+
+    # ---------------------------------------------------------- ログ閲覧（FR-12）
+    def _history_payload(self, start: date, end: date) -> dict:
+        rows = self.ctx.reports.history_rows(start, end)
+        return {
+            "header": CSV_HEADER,
+            "rows": rows,
+            "start": start.strftime("%Y/%m/%d"),
+            "end": end.strftime("%Y/%m/%d"),
+            "total": len(rows),
+        }
+
+    def open_history(self) -> None:
+        """管理メニューから貸借ログを画面で閲覧する（既定は当月）。"""
+        with self._lock:
+            if self._admin is None:
+                return
+            today = date.today()
+            self._goto("history", self._history_payload(today.replace(day=1), today))
+
+    def view_history(self, start_s: str, end_s: str) -> dict:
+        with self._lock:
+            denied = self._require_admin("ログ閲覧")
+            if denied:
+                return denied
+            self._reset_idle()
+            try:
+                start = datetime.strptime(start_s.strip(), "%Y/%m/%d").date()
+                end = datetime.strptime(end_s.strip(), "%Y/%m/%d").date()
+            except ValueError:
+                return {"ok": False, "message": "日付は YYYY/MM/DD 形式で入力してください"}
+            self.payload = self._history_payload(start, end)
+            self._emit()
+            return {"ok": True, "message": f"{self.payload['total']} 件"}
+
+    # ---------------------------------------------------------- 設定画面（FR-19）
+    def _settings_payload(self) -> dict:
+        c = self.cfg
+        return {
+            "values": {f: getattr(c, f) for f in _EDITABLE_SETTINGS},
+            # 起動時依存で画面からは変えられない（参考表示用・読み取り専用）。
+            "readonly": {
+                "card_reader": c.card_reader, "lock": c.lock,
+                "cam_switch": c.cam_switch, "theme": c.theme,
+            },
+        }
+
+    def open_settings(self) -> None:
+        with self._lock:
+            if self._admin is None:
+                return
+            self._goto("settings", self._settings_payload())
+
+    def update_settings(self, values: dict) -> dict:
+        """設定画面からの保存。検証→その場反映→config.json へ永続化。"""
+        with self._lock:
+            denied = self._require_admin("設定変更")
+            if denied:
+                return denied
+            self._reset_idle()
+            # 型を既定値から推定して変換（JSON 由来の文字列/数値を吸収）。
+            staged: dict = {}
+            for key in _EDITABLE_SETTINGS:
+                if key not in values:
+                    continue
+                current = getattr(self.cfg, key)
+                try:
+                    staged[key] = _coerce_like(current, values[key])
+                except (ValueError, TypeError):
+                    return {"ok": False, "message": f"{key} の値が不正です"}
+            # まずコピーに当てて検証（不正なら ctx.cfg は一切触らない）。
+            trial = replace(self.cfg, **staged)
+            try:
+                trial.validate()
+            except ConfigError as e:
+                return {"ok": False, "message": str(e)}
+            # 検証OK：実 cfg をその場で更新（大半のサービスは利用時に cfg を読む）。
+            for key, val in staged.items():
+                setattr(self.cfg, key, val)
+            # 通知ON/OFFは Notifier の内部フラグにも反映する。
+            self.ctx.notifier._overdue_enabled = self.cfg.teams_notify_overdue
+            self.ctx.notifier._errors_enabled = self.cfg.teams_notify_errors
+            self.ctx.notifier._routine_enabled = self.cfg.teams_notify_routine
+            try:
+                self.cfg.save()
+            except OSError as e:
+                _log.error("設定の保存に失敗: %s", e)
+                return {"ok": False, "message": f"保存に失敗しました: {e}"}
+            audit().info("設定変更 %s", staged)
+            self.payload = self._settings_payload()
+            self._emit()
+            return {"ok": True, "message": "設定を保存しました"}
 
     # ---------------------------------------------------------- 物品管理
     def open_item_admin(self) -> None:
@@ -729,6 +1025,7 @@ class Terminal:
 
     def shutdown(self) -> None:
         self._closed = True  # 定期リフレッシュの再スケジュールを止める
-        for t in (self._idle_timer, self._return_timer, self._refresh_timer):
+        for t in (self._idle_timer, self._return_timer, self._refresh_timer,
+                  self._lock_watch_timer):
             if t is not None:
                 t.cancel()

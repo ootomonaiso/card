@@ -83,6 +83,11 @@ function statusSub(it) {
   if (it.is_lent) {
     if (it.borrower_name) sub.push(`利用者: ${esc(it.borrower_name)}`);
     if (it.due_at) sub.push(`返却予定: <span class="num">${esc(it.due_at)}</span>`);
+    // 残り時間（カウントダウン）。延滞中は overdue 色に任せてここでは出さない。
+    if (typeof it.remaining_min === "number" && it.remaining_min >= 0) {
+      const cls = it.soon ? "num warn" : "num";
+      sub.push(`返却まで <span class="${cls}">あと${it.remaining_min}分</span>`);
+    }
   }
   return sub;
 }
@@ -133,6 +138,34 @@ function homeContent(d, withHint) {
   }
   if (withHint) kids.push(withHint);
   return kids;
+}
+
+// 時間選択（プリセットのグリッド＋カスタム分入力）。貸出と延長で共通。
+// onAction: 送る action 名。送信payloadは { minutes }。
+function durationChooser(d, onAction, customLabel) {
+  const grid = el("div", { class: "grid" },
+    d.choices.map(c => el("button", { class: "tonal", onclick: () => action(onAction, { minutes: c.min }), html: c.label })));
+  const customToast = el("p", { class: "toast muted" });
+  const customInput = el("input", {
+    type: "number", inputmode: "numeric",
+    min: String(d.custom_min), max: String(d.custom_max),
+    placeholder: `${d.custom_min}〜${d.custom_max}`,
+  });
+  const submitCustom = () => {
+    const n = parseInt(customInput.value, 10);
+    if (!Number.isInteger(n) || n < d.custom_min || n > d.custom_max) {
+      customToast.className = "toast danger";
+      customToast.textContent = `${d.custom_min}〜${d.custom_max} の整数（分）を入力してください`;
+      return;
+    }
+    action(onAction, { minutes: n });
+  };
+  const customRow = el("div", { class: "card" }, [
+    el("div", { class: "field" }, [el("label", { html: "カスタム（分）" }), customInput]),
+    el("button", { class: "small", onclick: submitCustom, html: customLabel }),
+    customToast,
+  ]);
+  return [grid, customRow];
 }
 
 const RENDER = {
@@ -190,35 +223,30 @@ const RENDER = {
   },
 
   borrow_time(d) {
-    const grid = el("div", { class: "grid" },
-      d.choices.map(c => el("button", { class: "tonal", onclick: () => action("choose_duration", { minutes: c.min }), html: c.label })));
-
-    const customToast = el("p", { class: "toast muted" });
-    const customInput = el("input", {
-      type: "number", inputmode: "numeric",
-      min: String(d.custom_min), max: String(d.custom_max),
-      placeholder: `${d.custom_min}〜${d.custom_max}`,
-    });
-    const submitCustom = () => {
-      const n = parseInt(customInput.value, 10);
-      if (!Number.isInteger(n) || n < d.custom_min || n > d.custom_max) {
-        customToast.className = "toast danger";
-        customToast.textContent = `${d.custom_min}〜${d.custom_max} の整数（分）を入力してください`;
-        return;
-      }
-      action("choose_duration", { minutes: n });
-    };
-    const customRow = el("div", { class: "card" }, [
-      el("div", { class: "field" }, [el("label", { html: "カスタム（分）" }), customInput]),
-      el("button", { class: "small", onclick: submitCustom, html: "この時間で借りる" }),
-      customToast,
-    ]);
-
     screenWrap([
       el("p", { class: "title", html: d.item_name ? `${esc(d.item_name)} の貸出時間を選んでください` : "貸出時間を選んでください" }),
-      grid,
-      customRow,
+      ...durationChooser(d, "choose_duration", "この時間で借りる"),
       el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
+    ]);
+  },
+
+  // 返却確認画面から呼ぶ、貸出の延長時間選択（choices は borrow_time と共通）
+  extend_time(d) {
+    screenWrap([
+      el("p", { class: "title", html: d.item_name ? `${esc(d.item_name)} をどれだけ延長しますか？` : "延長する時間を選んでください" }),
+      d.due_at ? el("p", { class: "body muted", html: `現在の返却予定: <span class="num">${esc(d.due_at)}</span>` }) : null,
+      ...durationChooser(d, "choose_extension", "この時間だけ延長"),
+      el("button", { class: "text", onclick: () => action("cancel"), html: "キャンセル" }),
+    ]);
+  },
+
+  extended(d) {
+    screenWrap([
+      icon("check", "hero-ico"),
+      el("p", { class: "display", html: "延長しました" }),
+      d.item_name ? el("p", { class: "title", text: d.item_name }) : null,
+      el("p", { class: "body", html: `新しい返却予定: <span class="num">${esc(d.due_at)}</span>` }),
+      el("p", { class: "body muted", html: "（数秒後に待機画面へ戻ります）" }),
     ]);
   },
 
@@ -301,15 +329,34 @@ const RENDER = {
     } else {
       okBtn = el("button", { class: "ok", onclick: () => action("confirm_return"), html: "返却する" });
     }
+    const rowKids = [okBtn];
+    // 延長（通常の返却導線のみ。管理者の強制返却中は出さない）
+    if (d.can_extend) rowKids.push(el("button", { class: "tonal", onclick: () => action("open_extend"), html: "延長する" }));
+    // 借りる（強制返却中は allow_borrow=false で出さない）
+    if (d.allow_borrow) rowKids.push(el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }));
+    rowKids.push(el("button", { class: "text", onclick: () => action("cancel"), html: "やめる" }));
     screenWrap([
       el("p", { class: "display", html: "返却しますか？" }),
       d.item_name ? el("p", { class: "title", text: d.item_name }) : null,
+      // 強制返却時は誰の貸出かを明示する（誤操作防止）。
+      d.borrower_name ? el("p", { class: "body muted", html: `利用者: ${esc(d.borrower_name)}` }) : null,
       el("p", { class: "body muted", html: `貸出日時: <span class="num">${esc(d.borrowed_at)}</span><br>返却予定: <span class="num">${esc(d.due_at)}</span>` }),
-      el("div", { class: "row" }, [
-        okBtn,
-        el("button", { class: "outlined", onclick: () => action("goto_borrow"), html: "借りる" }),
-        el("button", { class: "text", onclick: () => action("cancel"), html: "やめる" }),
-      ]),
+      el("div", { class: "row" }, rowKids),
+    ]);
+  },
+
+  // 管理者による強制返却の対象選択（全ての貸出中を一覧）
+  force_return_select(d) {
+    const list = el("div", { class: "grid" }, (d.loans || []).map(ln =>
+      el("button", {
+        class: ln.is_overdue ? "tonal danger" : "tonal",
+        onclick: () => action("choose_force_return", { loan_id: ln.loan_id }),
+        html: `${esc(ln.item_name)}${ln.is_overdue ? "（延滞）" : ""}<br><small>${ln.borrower_name ? "利用者: " + esc(ln.borrower_name) + " / " : ""}返却予定: <span class="num">${esc(ln.due_at)}</span></small>`,
+      })));
+    screenWrap([
+      el("p", { class: "title", html: "強制返却する物品を選んでください" }),
+      (d.loans && d.loans.length) ? list : el("p", { class: "body muted", html: "貸出中の物品はありません" }),
+      el("button", { class: "text", onclick: () => action("admin_menu"), html: "戻る" }),
     ]);
   },
 
@@ -366,10 +413,15 @@ const RENDER = {
       const cnt = d.return_count && d.return_count > 1 ? `（${d.return_count}件）` : "";
       kids.push(el("button", { class: "ok", onclick: () => action("admin_return"), html: `返却する${cnt}` }));
     }
+    if (d.any_lent) {
+      kids.push(el("button", { class: "tonal", onclick: () => action("open_force_return"), html: "強制返却（貸出中の物品）" }));
+    }
     kids.push(
       el("button", { class: "tonal", onclick: () => action("open_member_admin"), html: "メンバー管理" }),
       el("button", { class: "tonal", onclick: () => action("open_item_admin"), html: "物品管理" }),
+      el("button", { class: "tonal", onclick: () => action("open_history"), html: "履歴（ログ閲覧）" }),
       el("button", { class: "tonal", onclick: () => action("open_report"), html: "ログ出力（CSV）" }),
+      el("button", { class: "tonal", onclick: () => action("open_settings"), html: "設定" }),
       el("button", { class: "tonal", onclick: () => action("admin_self_borrow"), html: "自分で借りる" }),
       el("button", { class: "text", onclick: () => action("cancel"), html: "終了（待機へ）" }),
     );
@@ -377,17 +429,35 @@ const RENDER = {
     menu.style.flexDirection = "column";
     menu.style.width = "min(520px, 90%)";
     for (const b of kids) b.style.width = "100%";
-    // カムスイッチ（施錠検知）が有効なときだけ現在の施錠状態を表示する
-    const lockLine = d.lock_state
-      ? el("p", {
-          class: d.lock_state === "locked" ? "body ok" : "body danger",
-          html: d.lock_state === "locked" ? "施錠状態: 施錠されています" : "施錠状態: 未施錠です",
-        })
-      : null;
+    // サマリ帯（ダッシュボード）: 貸出中 / 延滞 / 本日 / 今月
+    const stat = (label, value, danger) => el("div", { class: danger ? "stat danger" : "stat" }, [
+      el("div", { class: "stat-num", text: String(value) }),
+      el("div", { class: "stat-label", html: label }),
+    ]);
+    const s = d.stats || {};
+    const statBand = el("div", { class: "statband" }, [
+      stat("貸出中", s.lent ?? 0, false),
+      stat("延滞", s.overdue ?? 0, (s.overdue ?? 0) > 0),
+      stat("本日", s.today ?? 0, false),
+      stat("今月", s.month ?? 0, false),
+    ]);
+    // 施錠状態（カムスイッチ有効時）と時刻同期の状態をまとめた補足行
+    const infoKids = [];
+    if (d.lock_state) {
+      infoKids.push(el("span", {
+        class: d.lock_state === "locked" ? "pill ok" : "pill danger",
+        html: d.lock_state === "locked" ? "施錠: OK" : "施錠: 未施錠",
+      }));
+    }
+    const SYNC = { synced: ["pill ok", "時刻同期: 同期済"], unsynced: ["pill danger", "時刻同期: 未同期"], unknown: ["pill", "時刻同期: 不明"] };
+    const sync = SYNC[d.time_sync] || SYNC.unknown;
+    infoKids.push(el("span", { class: sync[0], html: sync[1] }));
+    const infoLine = el("div", { class: "pillrow" }, infoKids);
     screenWrap([
       el("p", { class: "headline", html: "管理メニュー" }),
       el("p", { class: "body muted", html: d.admin_name ? `管理者: ${esc(d.admin_name)}` : "" }),
-      lockLine,
+      statBand,
+      infoLine,
       menu,
     ]);
   },
@@ -543,6 +613,81 @@ const RENDER = {
         el("button", { class: "small", onclick: run, html: "CSVを書き出す" }),
         toast,
       ]),
+    ]);
+  },
+
+  // ログ閲覧（画面でそのまま履歴を見る）
+  history(d) {
+    const start = el("input", { value: d.start, size: 10 });
+    const end = el("input", { value: d.end, size: 10 });
+    const info = el("p", { class: "toast muted", text: `${d.total} 件` });
+    const run = async () => {
+      const r = await action("view_history", { start: start.value, end: end.value });
+      if (!r.ok) { info.className = "toast danger"; info.textContent = r.message || ""; }
+      // 成功時は SSE 再描画で最新の表に差し替わる。
+    };
+    const header = el("tr", {}, (d.header || []).map(h => el("th", { text: h })));
+    const rows = (d.rows || []).map(r => el("tr", {}, (r || []).map(c => el("td", { text: c }))));
+    const body = (d.rows && d.rows.length)
+      ? el("div", { class: "tablewrap" }, el("table", { class: "logtable" }, [el("thead", {}, header), el("tbody", {}, rows)]))
+      : el("p", { class: "body muted", html: "この期間の記録はありません" });
+    adminWrap("履歴（ログ閲覧）", "admin_menu", [
+      el("div", { class: "card" }, [
+        el("div", { class: "field" }, [el("label", { html: "開始日" }), start]),
+        el("div", { class: "field" }, [el("label", { html: "終了日" }), end]),
+        el("button", { class: "small", onclick: run, html: "表示" }),
+        info,
+      ]),
+      el("div", { class: "section-label", html: "貸借ログ（新しい順）" }),
+      body,
+    ]);
+  },
+
+  // 設定画面（再起動不要で反映できる項目のみ）
+  settings(d) {
+    const v = d.values || {};
+    const toast = el("p", { class: "toast muted" });
+    const inputs = {};
+    // ラベルと入力種別（number / bool）を定義。キーはサーバの _EDITABLE_SETTINGS と対応。
+    const FIELDS = [
+      ["unlock_seconds", "解錠秒数", "number"],
+      ["idle_timeout_seconds", "無操作タイムアウト秒", "number"],
+      ["result_screen_seconds", "結果画面の表示秒", "number"],
+      ["standby_refresh_seconds", "待受の更新間隔秒", "number"],
+      ["return_confirm_hold_seconds", "返却の長押し秒", "number"],
+      ["due_soon_minutes", "まもなく返却のしきい値（分）", "number"],
+      ["show_borrower_name", "貸出中に利用者名を表示", "bool"],
+      ["allow_return_by_others", "本人以外の返却を許可", "bool"],
+      ["require_tap_to_start", "開始前にタッチ画面を挟む", "bool"],
+      ["teams_notify_overdue", "Teams通知: 延滞", "bool"],
+      ["teams_notify_errors", "Teams通知: エラー/閉め忘れ", "bool"],
+      ["teams_notify_routine", "Teams通知: 貸出返却", "bool"],
+    ];
+    const fieldEls = FIELDS.map(([key, label, kind]) => {
+      if (kind === "bool") {
+        const cb = el("input", { type: "checkbox" });
+        if (v[key]) cb.setAttribute("checked", "");
+        cb.checked = !!v[key];
+        inputs[key] = () => cb.checked;
+        return el("div", { class: "field row-field" }, [cb, el("label", { html: label })]);
+      }
+      const inp = el("input", { type: "number", step: "any", value: String(v[key] ?? "") });
+      inputs[key] = () => inp.value;
+      return el("div", { class: "field" }, [el("label", { html: label }), inp]);
+    });
+    const save = async () => {
+      const values = {};
+      for (const [key] of FIELDS) values[key] = inputs[key]();
+      const r = await action("update_settings", { values });
+      toast.className = "toast " + (r.ok ? "ok" : "danger");
+      toast.textContent = r.message || "";
+    };
+    const ro = d.readonly || {};
+    const roLine = el("p", { class: "body muted", html:
+      `※ 次の項目は config.json 直編集＋再起動で変更: カードリーダー=${esc(ro.card_reader)} / ロック=${esc(ro.lock)} / 施錠検知=${esc(ro.cam_switch)} / テーマ=${esc(ro.theme)}` });
+    adminWrap("設定", "admin_menu", [
+      el("div", { class: "card" }, [...fieldEls, el("button", { class: "small", onclick: save, html: "保存" }), toast]),
+      roLine,
     ]);
   },
 };

@@ -43,6 +43,10 @@
 
   "return_confirm_hold_seconds": 3,
 
+  "due_soon_minutes": 15,
+  "relock_alert_seconds": 30,
+  "relock_alert_repeat": 3,
+
   "teams_webhook_url": "",
   "teams_notify_overdue": true,
   "teams_notify_errors": true,

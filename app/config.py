@@ -77,6 +77,16 @@ class Config:
     # 返却確認画面での長押し秒数（誤操作防止）。0 を指定するとワンタップ確認に戻る。
     return_confirm_hold_seconds: float = 3.0
 
+    # 待受画面で「まもなく返却」として強調する残り時間のしきい値（分）。
+    # 残り時間が 0 より大きく、この値以下なら warn 色で「あと◯分」を表示する（FR-09 の補助）。
+    due_soon_minutes: int = 15
+
+    # 閉め忘れ検知（09 §5-1 カムスイッチ活用）。cam_switch が有効（is_locked が None 以外）な
+    # ときのみ作用する。解錠後この秒数を過ぎても施錠されなければ通知し、relock_alert_repeat 回
+    # まで再確認する。cam_switch="off"（既定）では完全 no-op。
+    relock_alert_seconds: float = 30.0
+    relock_alert_repeat: int = 3
+
     # Teams Webhook 通知。URL 未設定なら完全に no-op。
     teams_webhook_url: str = ""
     teams_notify_overdue: bool = True
@@ -95,7 +105,27 @@ class Config:
             known = {f for f in cls.__dataclass_fields__}  # type: ignore[attr-defined]
             cfg = cls(**{k: v for k, v in data.items() if k in known})
         cfg.validate()
+        # 読み込み元のパスを覚えておき、save() で同じファイルへ書き戻せるようにする
+        # （設定画面からの永続化で使う。dataclass フィールドではないので JSON には出ない）。
+        cfg._source_path = path
         return cfg
+
+    def save(self, path: str | Path | None = None) -> None:
+        """現在の設定値を JSON へ書き出す（設定画面からの永続化）。
+
+        保存前に validate() で不正値を弾く。path 省略時は load() で読んだ元ファイル、
+        それも無ければ既定の config.json に書く。_source_path 等の内部属性は出力しない。
+        """
+        self.validate()
+        if path is None:
+            path = getattr(self, "_source_path", None) or (
+                Path(__file__).resolve().parent.parent / "config.json"
+            )
+        path = Path(path)
+        data = {f: getattr(self, f) for f in self.__dataclass_fields__}  # type: ignore[attr-defined]
+        path.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
 
     def validate(self) -> None:
         """設定値の妥当性を検査する。不正なら ConfigError を送出。"""
@@ -138,6 +168,12 @@ class Config:
             errors.append("custom_duration_min_minutes は custom_duration_max_minutes 以下である必要があります")
         if self.return_confirm_hold_seconds < 0:
             errors.append("return_confirm_hold_seconds は 0 以上である必要があります")
+        if not isinstance(self.due_soon_minutes, int) or self.due_soon_minutes <= 0:
+            errors.append("due_soon_minutes は正の整数である必要があります")
+        if self.relock_alert_seconds <= 0:
+            errors.append("relock_alert_seconds は正の値である必要があります")
+        if not isinstance(self.relock_alert_repeat, int) or self.relock_alert_repeat <= 0:
+            errors.append("relock_alert_repeat は正の整数である必要があります")
         if self.teams_webhook_url and not self.teams_webhook_url.startswith("https://"):
             errors.append("teams_webhook_url は https:// で始まる必要があります")
         if not isinstance(self.locks, list):

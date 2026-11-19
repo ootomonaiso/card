@@ -186,10 +186,18 @@ class _Handler(BaseHTTPRequestHandler):
             t.choose_return(int(body["loan_id"]))
         elif action == "goto_borrow":
             t.goto_borrow()
+        elif action == "open_extend":
+            t.open_extend()
+        elif action == "choose_extension":
+            t.choose_extension(int(body["minutes"]))
         elif action == "confirm_return":
             t.confirm_return()
         elif action == "admin_return":
             t.admin_return()
+        elif action == "open_force_return":
+            t.open_force_return()
+        elif action == "choose_force_return":
+            t.choose_force_return(int(body["loan_id"]))
         elif action == "cancel":
             t.cancel()
         elif action == "admin_menu":
@@ -200,6 +208,14 @@ class _Handler(BaseHTTPRequestHandler):
             t.open_item_admin()
         elif action == "open_report":
             t.open_report()
+        elif action == "open_history":
+            t.open_history()
+        elif action == "view_history":
+            return t.view_history(body.get("start", ""), body.get("end", ""))
+        elif action == "open_settings":
+            t.open_settings()
+        elif action == "update_settings":
+            return t.update_settings(body.get("values", {}))
         elif action == "admin_self_borrow":
             t.admin_self_borrow()
         elif action == "add_item":

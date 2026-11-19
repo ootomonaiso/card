@@ -111,6 +111,15 @@ class ReportService:
             ])
         return rows
 
+    def history_rows(self, start: date, end: date, limit: int = 500) -> list[list[str]]:
+        """画面でのログ閲覧（FR-12）用の行。CSV と同項目・同書式で新しい順に返す。
+
+        件数が多い現場でも端末が固まらないよう limit 件で頭打ちにする（既定500）。
+        """
+        rows = self.build_rows(start, end)
+        rows.reverse()  # build_rows は borrowed_at 昇順。閲覧は新しい順が見やすい。
+        return rows[:limit]
+
     def export_csv(self, start: date, end: date, out_path: str | Path) -> int:
         """CSV を書き出し、出力行数を返す。"""
         rows = self.build_rows(start, end)

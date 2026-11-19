@@ -462,6 +462,58 @@ select { cursor: pointer; }
 .admin-body .section-label { width: min(900px, 96%); }
 .section-label { font-size: 20px; font-weight: 700; color: var(--md-on-surface-variant); margin-top: 8px; }
 
+/* --- 管理ダッシュボードのサマリ帯 --- */
+.statband {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  width: min(900px, 96%);
+}
+.statband .stat {
+  background: var(--md-surface-container-high);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  text-align: center;
+}
+.statband .stat-num { font-size: 34px; font-weight: 800; line-height: 1.1; }
+.statband .stat-label { font-size: 15px; color: var(--md-on-surface-variant); font-weight: 600; margin-top: 4px; }
+.statband .stat.danger { background: var(--md-error-container); border-color: transparent; }
+.statband .stat.danger .stat-num,
+.statband .stat.danger .stat-label { color: var(--md-on-error-container); }
+
+/* --- ピル（施錠状態・時刻同期などの小さな状態表示）--- */
+.pillrow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.pill {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface-variant);
+  border: 1px solid var(--md-outline-variant);
+}
+.pill.ok { background: var(--md-success-container); color: var(--md-on-success-container); border-color: transparent; }
+.pill.danger { background: var(--md-error-container); color: var(--md-on-error-container); border-color: transparent; }
+
+/* --- ログ閲覧の表（横スクロール可）--- */
+.tablewrap { width: min(900px, 96%); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.logtable { border-collapse: collapse; width: 100%; font-size: 15px; }
+.logtable th, .logtable td {
+  border: 1px solid var(--md-outline-variant);
+  padding: 8px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+.logtable th { background: var(--md-surface-container-high); font-weight: 700; position: sticky; top: 0; }
+.logtable tbody tr:nth-child(even) { background: var(--md-surface-container-low); }
+
+/* --- 設定画面: チェックボックス行（ラベルを右に）--- */
+.field.row-field { flex-direction: row; align-items: center; gap: 12px; }
+.field.row-field input[type="checkbox"] { width: 28px; height: 28px; min-height: 0; flex: 0 0 auto; }
+.field.row-field label { font-size: 18px; color: var(--md-on-surface); }
+
 /* 解錠中（扉が開いています）を最大限目立たせる */
 .unlock-banner {
   display: flex;

@@ -159,6 +159,37 @@ class LoanService:
             returned_at=None,
         )
 
+    # ---- 延長（FR-16） ----
+    def extend(self, loan: Loan, add_min: int) -> Loan:
+        """貸出中ログの返却予定を add_min 分だけ延ばす。
+
+        解錠は伴わない（扉を開けずに返却期限だけ延ばす）。延滞済みでも延長でき、
+        延滞解消の手段として使える。due_at を現在の予定から積み増し、記録上の
+        duration_min も合算して整合させる。
+        """
+        if not self.is_valid_duration(add_min):
+            raise LoanError(f"不正な延長時間です: {add_min}")
+        new_due = from_iso(loan.due_at) + timedelta(minutes=add_min)
+        new_duration = loan.duration_min + add_min
+        updated = self.loans.extend_due(loan.loan_id, to_iso(new_due), new_duration)
+        if updated == 0:
+            # 画面状態が古く、すでに返却済み等。期限だけ伸ばす操作なので実害はないが
+            # 業務記録としては残す。
+            _log.warning("延長記録なし（既に返却済み等） loan_id=%s", loan.loan_id)
+            raise LoanError("この貸出は延長できません（既に返却済みの可能性）")
+        audit().info(
+            "延長 loan_id=%s add_min=%s new_due=%s", loan.loan_id, add_min, to_iso(new_due)
+        )
+        return Loan(
+            loan_id=loan.loan_id,
+            member_id=loan.member_id,
+            item_id=loan.item_id,
+            borrowed_at=loan.borrowed_at,
+            duration_min=new_duration,
+            due_at=to_iso(new_due),
+            returned_at=None,
+        )
+
     # ---- 返却（FR-03） ----
     def find_returnable_loans(self, member: Member) -> list[Loan]:
         """このメンバーが返却できる貸出中ログの一覧（複数物品対応）。

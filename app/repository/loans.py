@@ -91,6 +91,16 @@ class LoanRepository:
         self.conn.commit()
         return cur.rowcount
 
+    def extend_due(self, loan_id: int, new_due_iso: str, new_duration_min: int) -> int:
+        """貸出中ログの返却予定を延長する。更新できた行数（0=返却済み/該当なし）を返す。"""
+        cur = self.conn.execute(
+            "UPDATE LOAN SET due_at = ?, duration_min = ?"
+            " WHERE loan_id = ? AND returned_at IS NULL",
+            (new_due_iso, new_duration_min, loan_id),
+        )
+        self.conn.commit()
+        return cur.rowcount
+
     def list_borrowed_between(self, start_iso: str, end_iso: str) -> list[Loan]:
         """borrowed_at が [start, end] に含まれる貸借ログ（CSV対象）。"""
         rows = self.conn.execute(
